@@ -33,6 +33,28 @@ to resolve all referenced terms at once.
 
 Read [docs/architecture.md](docs/architecture.md) before touching any code.
 
+### Introducing new terms
+
+Follow the link-as-if-exists convention (see
+[docs/glossary/cross-reference.md](docs/glossary/cross-reference.md)): a new
+domain concept is introduced by cross-referencing its slug *as if the term
+file already existed*, then creating `docs/glossary/<slug>.md`. Until the
+file exists, `--lint` reports the link as a fatal broken cross-reference —
+that is the enforcement, not a bug.
+
+Tickets declare new vocabulary under an `Introduces:` list, one slug per
+line, each linked as if it existed:
+
+```markdown
+## Introduces
+
+- [drift-baseline](../blob/main/docs/glossary/drift-baseline.md) — checked-in record of grandfathered drift
+```
+
+The `Introduces:` list is the durable record of the vocabulary a ticket
+intends to add; the linked term files are created by the ticket's
+implementation.
+
 ## Rules
 
 - Small, single-purpose files

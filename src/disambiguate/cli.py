@@ -1,12 +1,13 @@
 """
 Command-line entry point.
 
-Argparse-driven dispatch with four operating modes:
+Argparse-driven dispatch with five operating modes:
 
 - default: render selected slugs (or whole glossary) using the user's glossary
 - `--from <doc>`: extract slugs from a document, then render
 - `--explain`: render Disambiguate's own bundled glossary, with preamble
 - `--lint`: validate the user's glossary
+- `--drift`: detect prose drifting from the glossary
 
 Plus one verb, dispatched before the parser: `prune`, which removes
 terms nothing links.
@@ -24,14 +25,23 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from . import __version__, bundled
+from .baseline import (
+    BASELINE_FILENAME,
+    apply_baseline,
+    load_baseline,
+    prune_baseline,
+    save_baseline,
+)
 from .discovery import (
     GlossaryNotFoundError,
     RepoRootNotFoundError,
     RootFileMissingError,
     expand_root_specs,
     find_glossary,
+    find_repo_root,
     resolve_default_root,
 )
+from .drift import run_drift_checks
 from .from_mode import BrokenFromLinkError, extract_slugs
 from .glossary import DuplicateSlugError, Glossary, load_glossary
 from .lint import lint_glossary
@@ -39,6 +49,7 @@ from .logging_config import DEBUG_LEVEL, configure_logging
 from .prune import apply_prune, format_dry_run, plan_prune
 from .renderer import build_explain_preamble, render_terms
 from .resolver import CycleError, UnknownSlugError, resolve
+from .suppressions import load_drift_config
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +120,24 @@ def _build_parser() -> argparse.ArgumentParser:
         dest="lint",
         action="store_true",
         help="Validate the glossary against six fatal checks.",
+    )
+    mode.add_argument(
+        "--drift",
+        dest="drift",
+        action="store_true",
+        help=(
+            "Detect prose drifting from the glossary (fatal drift-checks "
+            "over the corpus reachable from the lint roots)."
+        ),
+    )
+    parser.add_argument(
+        "--write-baseline",
+        dest="write_baseline",
+        action="store_true",
+        help=(
+            "With --drift: write the drift-baseline file grandfathering "
+            "every current finding, instead of failing on them."
+        ),
     )
     parser.add_argument(
         "--roots",
@@ -292,6 +321,77 @@ def _run_lint(glossary: Glossary, roots: list[Path]) -> int:
     return EXIT_FAILURE
 
 
+def _baseline_location(config_root: Path | None) -> Path:
+    """
+    Resolve where the drift-baseline file lives.
+
+    config_root: directory of the active pyproject.toml, or None.
+
+    Returns
+    -------
+    `<config_root>/.drift-baseline.json` when a config was found, else the
+    repo root's, else the cwd's.
+
+    """
+    if config_root is not None:
+        return config_root / BASELINE_FILENAME
+    try:
+        return find_repo_root(Path.cwd()) / BASELINE_FILENAME
+    except RepoRootNotFoundError:
+        return Path.cwd() / BASELINE_FILENAME
+
+
+def _run_drift(glossary: Glossary, roots: list[Path], write_baseline: bool) -> int:
+    """
+    Run the drift-checks and report findings to stderr; return exit code.
+
+    glossary: loaded glossary.
+    roots: corpus roots.
+    write_baseline: True regenerates the drift-baseline from the current
+        findings and exits 0 instead of failing on them.
+
+    Returns
+    -------
+    EXIT_OK when no fresh finding remains (baselined findings are
+    non-fatal; stale baseline entries are auto-pruned), else EXIT_FAILURE.
+
+    """
+    config = load_drift_config(Path.cwd())
+    findings = run_drift_checks(glossary, roots=roots, config=config)
+    baseline_path = _baseline_location(config.root if config else None)
+
+    if write_baseline:
+        save_baseline(baseline_path, findings)
+        print(
+            f"wrote {baseline_path} grandfathering {len(findings)} finding(s)",
+            file=sys.stderr,
+        )
+        return EXIT_OK
+
+    baseline = load_baseline(baseline_path)
+    if baseline is not None:
+        findings, stale_keys = apply_baseline(findings, baseline)
+        if stale_keys:
+            # Fixed findings must not leave permanently stale baseline
+            # entries; the baseline only ever shrinks on a normal run.
+            prune_baseline(baseline, stale_keys)
+            print(
+                f"pruned {len(stale_keys)} fixed finding(s) from {baseline.path}",
+                file=sys.stderr,
+            )
+
+    if not findings:
+        return EXIT_OK
+    for finding in findings:
+        # Like lint findings, drift findings are diagnostics: stderr keeps
+        # stdout clean for composing with pipes.
+        print(
+            f"{finding.path}:{finding.line}: {finding.rule_code}: {finding.message}",
+            file=sys.stderr,
+        )
+    return EXIT_FAILURE
+
+
 def _run_default(glossary: Glossary, slugs: list[str]) -> int:
     """Resolve the requested slugs and print to stdout."""
     terms = resolve(glossary, _normalize_requested_slugs(slugs))
@@ -353,6 +453,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     parser = _build_parser()
     args = parser.parse_args(argv)
+    if args.write_baseline and not args.drift:
+        parser.error("--write-baseline requires --drift")
     effective_level = configure_logging(args.verbose)
 
     try:
@@ -363,6 +465,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             glossary = load_glossary(_user_glossary_path(args.glossary))
             roots = _resolve_lint_roots(args.roots)
             return _run_lint(glossary, roots)
+
+        if args.drift:
+            glossary = load_glossary(_user_glossary_path(args.glossary))
+            roots = _resolve_lint_roots(args.roots)
+            return _run_drift(glossary, roots, args.write_baseline)
 
         if args.from_doc is not None:
             glossary = load_glossary(_user_glossary_path(args.glossary))

@@ -105,3 +105,4 @@ e2e-test:
 .PHONY: dogfood ## Lint the project's own glossary against the README root
 dogfood:
 	$(RUN) python $(DEV_CLI_PATH) --lint
+	$(RUN) python $(DEV_CLI_PATH) --drift

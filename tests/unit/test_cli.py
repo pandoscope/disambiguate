@@ -375,3 +375,96 @@ def test_from_file_ignores_links_to_existing_non_glossary_docs(
     code, out, err = _run(["--from", "README.md"], cwd=project)
     assert code == 0, err
     assert "## A" in out
+
+
+def test_drift_reports_unlinked_term_and_fails(tmp_path: Path) -> None:
+    project = _setup_project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        "[topological-order](docs/glossary/topological-order.md) [guide](guide.md)\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "guide.md").write_text(
+        "Sort in topological order.\n",
+        encoding="utf-8",
+    )
+    code, _, stderr = _run(["--drift"], project)
+    assert code == 1
+    assert "unlinked-term" in stderr
+    assert "guide.md:1" in stderr
+    assert "topological-order" in stderr
+
+
+def test_drift_clean_corpus_exits_zero(tmp_path: Path) -> None:
+    project = _setup_project(tmp_path)
+    code, _, stderr = _run(["--drift"], project)
+    assert code == 0
+    assert stderr == ""
+
+
+def test_drift_output_prints_suppression_hint_syntax(tmp_path: Path) -> None:
+    project = _setup_project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        "[topological-order](docs/glossary/topological-order.md) [guide](guide.md)\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "guide.md").write_text(
+        "Sort in topological order.\n",
+        encoding="utf-8",
+    )
+    code, _, stderr = _run(["--drift"], project)
+    assert code == 1
+    assert "<!-- d10e: ignore[unlinked-term] topological-order -->" in stderr
+
+
+def _drifted_project(tmp_path: Path) -> Path:
+    project = _setup_project(tmp_path)
+    (tmp_path / "README.md").write_text(
+        "[topological-order](docs/glossary/topological-order.md) [guide](guide.md)\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "guide.md").write_text(
+        "Sort in topological order.\n",
+        encoding="utf-8",
+    )
+    return project
+
+
+def test_write_baseline_then_clean_run(tmp_path: Path) -> None:
+    project = _drifted_project(tmp_path)
+    code, _, _ = _run(["--drift", "--write-baseline"], project)
+    assert code == 0
+    assert (tmp_path / ".drift-baseline.json").is_file()
+    code, _, stderr = _run(["--drift"], project)
+    assert code == 0
+    assert "unlinked-term" not in stderr
+
+
+def test_new_drift_not_in_baseline_fails(tmp_path: Path) -> None:
+    project = _drifted_project(tmp_path)
+    _run(["--drift", "--write-baseline"], project)
+    (tmp_path / "README.md").write_text(
+        "[topological-order](docs/glossary/topological-order.md) "
+        "[guide](guide.md) [extra](extra.md)\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "extra.md").write_text(
+        "Sort in topological order.\n",
+        encoding="utf-8",
+    )
+    code, _, stderr = _run(["--drift"], project)
+    assert code == 1
+    assert "extra.md" in stderr
+    assert "guide.md" not in stderr
+
+
+def test_baseline_auto_prunes_fixed_findings(tmp_path: Path) -> None:
+    project = _drifted_project(tmp_path)
+    _run(["--drift", "--write-baseline"], project)
+    (tmp_path / "guide.md").write_text(
+        "Sort in [topological order](docs/glossary/topological-order.md).\n",
+        encoding="utf-8",
+    )
+    code, _, _ = _run(["--drift"], project)
+    assert code == 0
+    baseline_text = (tmp_path / ".drift-baseline.json").read_text(encoding="utf-8")
+    assert "guide.md" not in baseline_text

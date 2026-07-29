@@ -141,7 +141,7 @@ def _check_malformed_wikilinks(glossary: Glossary) -> list[LintFinding]:
     return findings
 
 
-def _walk_reachable(
+def walk_reachable(
     roots: Iterable[Path],
     glossary: Glossary,
 ) -> set[Path]:
@@ -207,7 +207,7 @@ def orphan_slugs(glossary: Glossary, roots: list[Path]) -> list[str]:
     That makes the orphan set closed under its own removal: deleting
     orphans can never orphan a term that was reachable.
     """
-    visited = _walk_reachable(roots, glossary)
+    visited = walk_reachable(roots, glossary)
     return sorted(
         slug
         for slug, term in glossary.terms.items()

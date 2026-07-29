@@ -268,3 +268,27 @@ def test_auto_prune_marker_does_not_disturb_lint_or_the_h2(tmp_path: Path) -> No
     assert glossary.terms["marked"].canonical_name == "Marked"
     assert glossary.terms["marked"].auto_prune is True
     assert lint_glossary(glossary, roots=[root]) == []
+
+
+def test_link_as_if_exists_is_caught_as_broken_link(tmp_path: Path) -> None:
+    """
+    Pin the link-as-if-exists convention (#35).
+
+    A new concept is introduced by cross-referencing its slug as if the
+    term file already existed. Until the file lands, the existing
+    broken-link check reports it fatally — "used but never defined" needs
+    no extra checker.
+    """
+    glossary_dir = _setup_glossary(tmp_path)
+    _write(
+        glossary_dir,
+        "a",
+        "## A\n\nUses the [not-yet-defined](not-yet-defined.md) concept.\n",
+    )
+    root = tmp_path / "README.md"
+    root.write_text("[a](glossary/a.md)\n", encoding="utf-8")
+    glossary = load_glossary(glossary_dir)
+    findings = lint_glossary(glossary, roots=[root])
+    assert any(
+        f.kind == "broken-link" and "not-yet-defined" in f.message for f in findings
+    )

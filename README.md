@@ -49,6 +49,7 @@ uvx disambiguate topological-order     # render one term and its dependency clos
 uvx disambiguate --from notes.md       # extract glossary-shaped links from a doc
 uvx disambiguate --explain             # render Disambiguate's own bundled spec
 uvx disambiguate --lint                # validate the glossary
+uvx disambiguate --drift               # detect prose drifting from the glossary
 uvx disambiguate prune                 # remove terms nothing links
 ```
 
@@ -73,6 +74,15 @@ list of [cross-references](docs/glossary/cross-reference.md), builds a
 runs the [resolver](docs/glossary/resolver.md) to produce
 [topological order](docs/glossary/topological-order.md). The same pipeline
 backs [from-mode](docs/glossary/from-mode.md) and `--explain`.
+
+`--drift` detects [drift](docs/glossary/drift.md) — prose that uses the
+vocabulary without following it: terms mentioned but never linked, and (as
+the checks grow) forbidden synonyms and wrong casing. Each
+[drift-check](docs/glossary/drift-check.md) reports fatal findings named by
+a stable [rule-code](docs/glossary/rule-code.md); false positives are
+silenced precisely with [ignore-hints](docs/glossary/ignore-hint.md), and
+already-drifted repos adopt incrementally through a checked-in
+[drift-baseline](docs/glossary/drift-baseline.md).
 
 For the architectural map, see [docs/architecture.md](docs/architecture.md).
 For the full vocabulary, see the

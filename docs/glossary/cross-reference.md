@@ -28,3 +28,16 @@ must come first.
 Cross-references inside fenced code blocks or inline code spans are
 ignored — code samples that happen to contain link-shaped text do not
 create edges.
+
+## Link-as-if-exists
+
+A new domain concept is introduced by writing a cross-reference to its
+[slug](slug.md) *as if the term file already existed*. Until the file
+lands, the broken-cross-reference check of `--lint` reports the link as
+a precise, fatal finding — "a new term was used but never defined" needs no
+heuristics. Creating the term file is what registers the concept and turns
+the finding off.
+
+Tickets declare their new vocabulary the same way: an `Introduces:` list
+naming each new term as a slug, each linked as if it existed. The list is
+the durable record of the vocabulary a ticket intends to add.

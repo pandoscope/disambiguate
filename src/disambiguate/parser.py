@@ -61,6 +61,10 @@ _D10E_ANNOTATION_RE = re.compile(r"<!--\s*d10e:\s*(?P<annotations>[^>]*?)\s*-->"
 
 AUTO_PRUNE = "auto-prune"
 
+# Avoided-terms line (ADR 0001): literal `_Avoid_:` prefix, then
+# comma-separated aliases on the same line.
+_AVOID_LINE_RE = re.compile(r"^_Avoid_:\s*(?P<aliases>.+?)\s*$", re.MULTILINE)
+
 # Standard markdown link to an .md file: [text](path/to/foo.md), with an
 # optional #fragment after the path — the fragment is stripped, only the
 # path is captured. `#` is excluded from path characters so the greedy path
@@ -245,3 +249,26 @@ def parse_term_text(slug: str, text: str) -> ParsedTerm:
         link_slugs=link_slugs,
         auto_prune=AUTO_PRUNE in extract_d10e_annotations(text),
     )
+
+
+def extract_avoided_terms(text: str) -> list[str]:
+    """
+    Return the avoided-terms declared on a term file's `_Avoid_:` line.
+
+    The grammar (ADR 0001): a single line starting with the literal
+    `_Avoid_:` prefix, followed by comma-separated aliases.
+
+    text: raw markdown contents of a term file.
+
+    Returns
+    -------
+    The aliases in declaration order; empty list when no `_Avoid_:` line
+    is present.
+
+    """
+    match = _AVOID_LINE_RE.search(text)
+    if match is None:
+        return []
+    return [
+        alias.strip() for alias in match.group("aliases").split(",") if alias.strip()
+    ]

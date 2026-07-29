@@ -18,6 +18,7 @@ from disambiguate.cli import (
     _normalize_requested_slugs,
     _resolve_lint_roots,
     _run_default,
+    _run_drift,
     _run_from,
     _run_lint,
     _user_glossary_path,
@@ -71,6 +72,17 @@ def main(
         bool,
         typer.Option("--lint", help="Validate the active glossary."),
     ] = False,
+    drift: Annotated[
+        bool,
+        typer.Option("--drift", help="Detect prose drifting from the glossary."),
+    ] = False,
+    write_baseline: Annotated[
+        bool,
+        typer.Option(
+            "--write-baseline",
+            help="With --drift: regenerate the drift-baseline file.",
+        ),
+    ] = False,
     roots: Annotated[
         list[str] | None,
         typer.Option("--roots", help="Lint roots: paths and globs measured from."),
@@ -88,10 +100,15 @@ def main(
     """Run Disambiguate in a source checkout with Typer-friendly debugging."""
     active_slugs = slugs or []
     selected_modes = sum(
-        mode_is_selected for mode_is_selected in (from_doc is not None, explain, lint)
+        mode_is_selected
+        for mode_is_selected in (from_doc is not None, explain, lint, drift)
     )
     if selected_modes > 1:
-        raise typer.BadParameter("Use only one of --from, --explain, or --lint.")
+        raise typer.BadParameter(
+            "Use only one of --from, --explain, --lint, or --drift."
+        )
+    if write_baseline and not drift:
+        raise typer.BadParameter("--write-baseline requires --drift.")
 
     if explain:
         glossary_obj = load_glossary(SOURCE_GLOSSARY)
@@ -105,6 +122,10 @@ def main(
     glossary_obj = load_glossary(_user_glossary_path(glossary_arg))
     if lint:
         raise typer.Exit(_run_lint(glossary_obj, _resolve_lint_roots(roots)))
+    if drift:
+        raise typer.Exit(
+            _run_drift(glossary_obj, _resolve_lint_roots(roots), write_baseline)
+        )
     if from_doc is not None:
         raise typer.Exit(_run_from(glossary_obj, from_doc))
     raise typer.Exit(_run_default(glossary_obj, active_slugs))
