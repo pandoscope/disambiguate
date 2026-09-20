@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import io
 import os
+import shutil
+import subprocess
 import sys
 import types
 from contextlib import redirect_stderr, redirect_stdout
@@ -19,6 +21,9 @@ import pytest
 from disambiguate.cli import main
 
 CONSENT = "<!-- d10e: auto-prune -->"
+# Resolved once: the fixtures need a real repo, and a resolved path is
+# what the bandit rule on partial executable paths asks for.
+GIT = shutil.which("git") or "git"
 
 
 @pytest.fixture(autouse=True)
@@ -193,3 +198,47 @@ def test_default_run_deletes_a_chain_only_when_all_of_it_consents(
     assert code == 0
     for slug in CHAIN_SLUGS[: len(consents)]:
         assert (glossary / f"{slug}.md").exists() is not pruned
+
+
+def test_prune_keeps_terms_the_repo_mentions_without_linking(tmp_path: Path) -> None:
+    """
+    disambiguate#84: the fresh-stamp case.
+
+    Agent docs, scripts and workflows name vendored terms without linking
+    them; only the README links, and it links nothing. Before the first
+    commit, so every file is untracked.
+    """
+    subprocess.run(  # noqa: S603 - args are controlled test data.
+        [GIT, "init", "-q"], cwd=tmp_path, check=True
+    )
+    glossary = tmp_path / "docs" / "glossary"
+    glossary.mkdir(parents=True)
+    for slug, name in (
+        ("principal", "Principal"),
+        ("decision-memory", "Decision-memory"),
+        ("grilling", "Grilling"),
+        ("agent-session", "Agent session"),
+        ("never-named", "Never named"),
+    ):
+        (glossary / f"{slug}.md").write_text(
+            f"## {name}\n\n{CONSENT}\n\nVendored.\n", encoding="utf-8"
+        )
+    (tmp_path / "README.md").write_text("# Fresh\n\nNo links yet.\n", encoding="utf-8")
+    (tmp_path / "AGENTS.md").write_text(
+        "The principal rules. Grilling records to decision-memory.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "run.sh").write_text(
+        "echo 'one agent session per ticket'\n", encoding="utf-8"
+    )
+
+    code, stdout, _ = run(["prune"], tmp_path)
+
+    assert code == 0
+    assert (glossary / "principal.md").exists()
+    assert (glossary / "decision-memory.md").exists()
+    assert (glossary / "grilling.md").exists()
+    assert (glossary / "agent-session.md").exists()
+    assert not (glossary / "never-named.md").exists()
+    assert "never-named" in stdout
