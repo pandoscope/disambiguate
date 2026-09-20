@@ -10,7 +10,7 @@ Argparse-driven dispatch with five operating modes:
 - `--drift`: detect prose drifting from the glossary
 
 Plus one verb, dispatched before the parser: `prune`, which removes
-terms nothing links.
+terms nothing links or mentions.
 """
 
 from __future__ import annotations
@@ -176,8 +176,8 @@ def _build_prune_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="disambiguate prune",
         description=(
-            "Remove glossary terms nothing links. A term consents by "
-            "carrying a `<!-- d10e: auto-prune -->` annotation."
+            "Remove glossary terms nothing links or mentions. A term "
+            "consents by carrying a `<!-- d10e: auto-prune -->` annotation."
         ),
     )
     parser.add_argument(
