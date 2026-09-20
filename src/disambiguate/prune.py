@@ -1,5 +1,5 @@
 """
-Remove glossary terms that nothing links.
+Remove glossary terms that nothing links or mentions.
 
 A repo can acquire terms it does not link. Those are `orphan` findings,
 so `--lint` fails on a repo that did nothing wrong. Exempting them
@@ -15,6 +15,7 @@ opted in.
 from __future__ import annotations
 
 import logging
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -45,6 +46,7 @@ def plan_prune(
     roots: list[Path],
     *,
     all_orphans: bool = False,
+    used: Collection[str] = (),
 ) -> PrunePlan:
     """
     Decide which terms a prune run removes.
@@ -52,12 +54,16 @@ def plan_prune(
     glossary: the loaded glossary.
     roots: documents reachability is measured from.
     all_orphans: also remove orphans that never declared consent.
+    used: slugs the repository mentions without linking (disambiguate#84).
+        Each joins the roots of the walk, so a mentioned term is in use
+        and so is everything it links.
 
     Returns
     -------
     A PrunePlan. Pure — reads the graph, touches no files.
 
     """
+    del used  # stub: the seam exists, the walk widens in the next commit
     orphans = orphan_slugs(glossary, roots)
     if all_orphans:
         return PrunePlan(remove=list(orphans), additional=[])
