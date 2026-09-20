@@ -49,6 +49,7 @@ from .prune import apply_prune, format_dry_run, plan_prune
 from .renderer import build_explain_preamble, render_terms
 from .resolver import CycleError, UnknownSlugError, resolve
 from .suppressions import load_drift_config
+from .usage import mentioned_slugs
 
 logger = logging.getLogger(__name__)
 
@@ -217,7 +218,10 @@ def _run_prune(argv: list[str]) -> int:
 
     glossary = load_glossary(_user_glossary_path(args.glossary))
     roots = _resolve_lint_roots(args.roots)
-    plan = plan_prune(glossary, roots, all_orphans=args.all_orphans)
+    # A term the repo names anywhere is in use (disambiguate#84): only
+    # `prune` widens what counts as use; `--lint` keeps link reachability.
+    used = mentioned_slugs(glossary, find_repo_root(Path.cwd()))
+    plan = plan_prune(glossary, roots, all_orphans=args.all_orphans, used=used)
 
     if args.dry_run:
         print(format_dry_run(plan))
