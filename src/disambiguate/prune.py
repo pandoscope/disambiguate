@@ -63,8 +63,8 @@ def plan_prune(
     A PrunePlan. Pure — reads the graph, touches no files.
 
     """
-    del used  # stub: the seam exists, the walk widens in the next commit
-    orphans = orphan_slugs(glossary, roots)
+    walk_from = [*roots, *(glossary.terms[slug].path for slug in sorted(used))]
+    orphans = orphan_slugs(glossary, walk_from)
     if all_orphans:
         return PrunePlan(remove=list(orphans), additional=[])
 

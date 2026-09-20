@@ -50,7 +50,7 @@ uvx disambiguate --from notes.md       # extract glossary-shaped links from a do
 uvx disambiguate --explain             # render Disambiguate's own bundled spec
 uvx disambiguate --lint                # validate the glossary
 uvx disambiguate --drift               # detect prose drifting from the glossary
-uvx disambiguate prune                 # remove terms nothing links
+uvx disambiguate prune                 # remove terms nothing links or mentions
 ```
 
 The runtime is stdlib-only — `pip install disambiguate` brings in nothing
@@ -64,9 +64,9 @@ pip install disambiguate
 
 ## How it works
 
-[Prune](docs/glossary/prune.md) removes terms nothing links, for repos that
-acquire a shared term set and use only part of it; a term consents by
-carrying an [auto-prune](docs/glossary/auto-prune.md) annotation.
+[Prune](docs/glossary/prune.md) removes terms nothing links or mentions, for
+repos that acquire a shared term set and use only part of it; a term consents
+by carrying an [auto-prune](docs/glossary/auto-prune.md) annotation.
 
 The pipeline parses each [term](docs/glossary/term.md) into a body plus a
 list of [cross-references](docs/glossary/cross-reference.md), builds a
