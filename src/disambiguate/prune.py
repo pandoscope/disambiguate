@@ -54,9 +54,9 @@ def plan_prune(
     glossary: the loaded glossary.
     roots: documents reachability is measured from.
     all_orphans: also remove orphans that never declared consent.
-    used: slugs some file outside the roots links (disambiguate#84).
-        Each joins the roots of the walk, so a linked term is in use
-        and so is everything it links.
+    used: slugs that some file outside the roots links (disambiguate#84).
+        Each slug becomes an extra root of the walk. A linked term stays,
+        and so does every term it links.
 
     Returns
     -------

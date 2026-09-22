@@ -218,10 +218,11 @@ def _run_prune(argv: list[str]) -> int:
 
     glossary = load_glossary(_user_glossary_path(args.glossary))
     roots = _resolve_lint_roots(args.roots)
-    # A term any file in the repo links is in use (disambiguate#84): only
-    # `prune` widens where a link counts; `--lint` keeps root reachability.
-    # Without a `.git/` ancestor the working tree itself is the scan root:
-    # the walk needs no git, and a vault or an unpacked copy still prunes.
+    # A link from any file in the repository keeps a term (disambiguate#84).
+    # Only `prune` counts such links; `--lint` still measures reachability
+    # from the roots. Without a `.git/` ancestor, the scan root is the
+    # working directory: the scan needs no git, so a vault or an unpacked
+    # copy still prunes.
     try:
         scan_root = find_repo_root(Path.cwd())
     except RepoRootNotFoundError:

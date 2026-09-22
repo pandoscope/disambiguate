@@ -206,10 +206,10 @@ def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
     """
     disambiguate#84: the fresh-stamp case.
 
-    Agent docs and scripts link vendored terms the README never links.
-    A term a script only names is not in use: the same spelling may
-    mean something else, and the unlinked mention is drift's finding.
-    Before the first commit, so every file is untracked.
+    Agent docs and a script link vendored terms; README links none.
+    A term the script only names is not in use: same spelling may
+    mean something else, and drift reports the unlinked mention.
+    The run happens before the first commit, so every file is untracked.
     """
     subprocess.run(  # noqa: S603 - args are controlled test data.
         [GIT, "init", "-q"], cwd=tmp_path, check=True
@@ -256,10 +256,10 @@ def test_prune_runs_in_a_tree_without_git_when_roots_are_explicit(
     tmp_path: Path,
 ) -> None:
     """
-    A tree without `.git/` prunes with explicit roots.
+    A tree without `.git/` prunes when roots are explicit.
 
-    A vault or an unpacked copy has no git; the walk never needed one
-    (spec-fidelity review of pr85).
+    A vault or an unpacked copy has no git. The link scan never needed
+    one (spec-fidelity review of pr85).
     """
     glossary = tmp_path / "docs" / "glossary"
     glossary.mkdir(parents=True)

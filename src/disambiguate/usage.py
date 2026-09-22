@@ -1,24 +1,24 @@
 """
-Usage by link: a term any file in the repository links is in use.
+Usage by link: a term is in use when any file in the repository links it.
 
-`prune` measured use as link reachability from the roots, so a fresh
-stamp lost every vendored term that agent docs and scripts link while
-the roots do not (disambiguate#84). Use is an explicit cross-reference
-to the term, markdown or wiki syntax, in any text file the repository
-carries. The glossary directory itself is excluded: a term linking
-another term is a cross-reference, and the reachability walk already
-owns those.
+Before this module, `prune` counted a term as used only when the roots
+reached it. A fresh stamp then lost every vendored term that agent docs
+and scripts link but the README does not (disambiguate#84). Now use means
+an explicit cross-reference to the term, markdown or wiki syntax, in any
+text file the repository carries. Files inside the glossary directory are
+excluded: a link from one term to another is a cross-reference, and the
+reachability walk already handles those.
 
-A bare mention never counts. The same spelling can carry another
-meaning, and keeping a term for it would blunt prune; an unlinked
-mention is what `--drift` reports instead.
+A bare mention never counts. Same spelling can mean something else, and
+keeping a term for it would blunt prune. `--drift` reports unlinked
+mentions.
 
-DECISION:SCOPE — "git-tracked" in the ticket is read as "what git would
-carry": tracked files plus untracked files that are not ignored. The
-post-stamp prune runs before the first commit, when every file is still
-untracked, and reading the ticket literally would prune the fresh stamp
-it was filed to protect. Ignored files (build output, caches) stay out.
-Without a usable git the tree is walked directly, minus `.git/`.
+DECISION:SCOPE: the ticket says "git-tracked". This module reads that as
+"what git would carry": tracked files plus untracked files git does not
+ignore. The post-stamp prune runs before the first commit, when every
+file is untracked. A literal reading would prune the fresh stamp the
+ticket protects. Ignored files (build output, caches) stay out. Without
+a usable git, the module walks the tree minus `.git/`.
 """
 
 from __future__ import annotations
@@ -30,23 +30,24 @@ from pathlib import Path
 from disambiguate.glossary import Glossary
 from disambiguate.parser import extract_all_link_slugs
 
-# Files above this size are not prose anyone wrote; skipping them keeps
-# a stray dump from turning every prune into a full-disk read.
+# Nobody writes prose above this size. Skipping larger files keeps one
+# stray dump from turning every prune into a full-disk read.
 _MAX_BYTES = 1_000_000
 _SNIFF_BYTES = 8_192
 
 
 def linked_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
     """
-    Return the slugs of every term some file under `repo_root` links.
+    Return slugs of every term that some file under `repo_root` links.
 
-    glossary: the loaded glossary; its directory is excluded from the scan.
+    glossary: the loaded glossary. Files in its directory are not scanned.
     repo_root: the working tree to scan.
 
     Returns
     -------
-    A set of slugs, empty when nothing outside the glossary links a term.
-    A link whose slug names no term is ignored; code is never scanned.
+    A set of slugs. Empty when no file outside the glossary links a term.
+    A link to a slug that names no term is ignored. Links inside code
+    never count.
 
     """
     glossary_dir = glossary.root.resolve()
@@ -66,7 +67,7 @@ def linked_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
 
 
 def _candidate_files(repo_root: Path) -> list[Path]:
-    """Every file git would carry; the whole tree minus `.git/` without git."""
+    """Every file git would carry, or the whole tree minus `.git/` without git."""
     listed = _git_listed(repo_root)
     if listed is not None:
         return listed
@@ -78,7 +79,7 @@ def _candidate_files(repo_root: Path) -> list[Path]:
 
 
 def _git_listed(repo_root: Path) -> list[Path] | None:
-    """Tracked plus untracked-and-not-ignored paths, or None without git."""
+    """Tracked and untracked-not-ignored paths, or None without a usable git."""
     try:
         result = subprocess.run(
             [  # noqa: S607 — git resolved on PATH by design
@@ -103,7 +104,7 @@ def _git_listed(repo_root: Path) -> list[Path] | None:
 
 
 def _read_text(path: Path) -> str | None:
-    """The file's text, or None for a binary, oversized or unreadable file."""
+    """The file's text, or None when the file is binary, oversized or unreadable."""
     try:
         if not path.is_file() or path.stat().st_size > _MAX_BYTES:
             return None

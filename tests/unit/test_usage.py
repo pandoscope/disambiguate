@@ -1,12 +1,12 @@
 """
-Tests for disambiguate.usage: a term linked from anywhere in the repo is in use.
+Tests for disambiguate.usage: a link from anywhere in the repo is use.
 
-Prune assumed link reachability from the roots was the only form of
-use, so a fresh stamp lost every vendored term that agent docs and
-scripts link without the roots linking them (disambiguate#84). Use is
-an explicit cross-reference to the term, markdown or wiki syntax, in
-any text file the repo carries, the glossary directory itself
-excluded. A bare mention is never use: that is drift's finding.
+Before, prune counted a term as used only when the roots reached it.
+A fresh stamp then lost every vendored term that agent docs and scripts
+link but the roots do not (disambiguate#84). Use is an explicit
+cross-reference to the term, markdown or wiki syntax, in any text file
+the repo carries. Files in the glossary directory are excluded. A bare
+mention is never use; drift reports it.
 """
 
 from __future__ import annotations

@@ -237,11 +237,11 @@ def test_dry_run_distinguishes_no_orphans_from_protected_orphans(
 
 def test_used_terms_count_as_roots_and_keep_what_they_link(tmp_path: Path) -> None:
     """
-    A term some file links is in use, and so is what it links.
+    A term some file links is in use, and so is every term it links.
 
-    disambiguate#84: reachability from the roots was the only form of
-    use, so a vendored term agent docs link but the roots never reach
-    was pruned. A used slug joins the roots of the walk.
+    disambiguate#84: before, use meant reachability from the roots only.
+    A vendored term that agent docs link but the roots never reach was
+    pruned. Now a used slug joins the roots of the walk.
     """
     glossary, roots = build(
         tmp_path,
