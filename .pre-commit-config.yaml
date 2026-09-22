@@ -115,6 +115,21 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-push]
+      # File cost cap (#239, #242): nothing else here reads what a file
+      # costs an agent to read. The cap is estimated tokens (bytes/4),
+      # from the agentic_max_file_tokens answer, so a repo widens it
+      # deliberately and its answers file records that it did. Bash
+      # files also get a code-line limit — long bash means rewrite in
+      # Python, and comments stay free there. Existing overruns go on
+      # .file-length-allowlist, each with the ticket that will bring
+      # it back under — an entry without one is refused, and an entry
+      # whose file came back under every cap has to leave the list.
+      - id: file-length
+        name: no source file over the token cap
+        entry: python3 scripts/check_file_length.py --max-tokens 10000
+        language: system
+        files: \.(py|mjs|cjs|js|jsx|ts|tsx|sh|bash|md|yml|yaml|toml|json|html|css)(\.jinja)?$
+        exclude: (^|/)([^/]*lock[^/]*\.(json|yml|yaml|toml)|[^/]*\.min\.(js|css))$
       # Repo-owned hooks (#216): a repo's own language hooks live in
       # `.pre-commit-config.local.yaml`, which the template seeds once
       # and never stamps again. Delegating keeps them on the same
@@ -128,6 +143,11 @@ repos:
         name: repo-owned hooks
         entry: bash -c '[ "$#" -gt 0 ] && [ -f .pre-commit-config.local.yaml ] || exit 0; grep -qE "^\s*-\s*repo:" .pre-commit-config.local.yaml || exit 0; exec prek run --config .pre-commit-config.local.yaml --files "$@"' --
         language: system
+        # One nested run per invocation (#263): with filenames passed,
+        # a whole-tree run is split into batches that run concurrently,
+        # and every batch then runs the repo's type checker against one
+        # shared cache — mypy dies with INTERNAL ERROR in the race.
+        require_serial: true
       - id: disambiguate-lint
         name: disambiguate --lint
         entry: uvx disambiguate==0.3.0 --lint

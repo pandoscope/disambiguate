@@ -23,6 +23,11 @@ jobs:
     # as SKIPPED, which is visibly different from a green run — an absent
     # sync must never be indistinguishable from a successful one.
     if: ${{ vars.LABELS_SYNC_ENABLED == 'true' }}
+    # The label sync itself runs on LABELS_TOKEN, but the checkout
+    # below still reads labels.toml out of this repository, which
+    # the workflow-level `permissions: {}` otherwise forbids (#253).
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 

@@ -25,6 +25,10 @@ on:
     types: [created, edited, deleted]
 
 permissions:
+  # `permissions:` replaces the default set — a block naming only
+  # `actions` leaves the token unable to read the repository, and
+  # the checkout below dies on "Repository not found" (#253).
+  contents: read
   actions: write
 
 concurrency:

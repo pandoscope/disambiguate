@@ -1,0 +1,8 @@
+# Source files allowed over the 800-line limit,
+# one per line, each with the ticket that will bring it back under:
+#
+#     path/to/big_file.py  # owner/repo#123
+#
+# An entry without a ticket is refused, and an entry whose file came
+# back under the limit — or disappeared — has to leave the list. The
+# hook is scripts/check_file_length.py.
