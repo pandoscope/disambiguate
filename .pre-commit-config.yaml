@@ -154,3 +154,13 @@ repos:
         language: system
         files: ^docs/glossary/
         pass_filenames: false
+      # Prose reachable from the roots that names a term without linking
+      # it, or uses an avoided spelling (#267). .drift-baseline.json
+      # grandfathers a repo's findings; a new one fails, and a fixed one
+      # fails until `--drift --write-baseline` shrinks the file.
+      - id: disambiguate-drift
+        name: disambiguate --drift
+        entry: uvx disambiguate==0.3.0 --drift
+        language: system
+        files: \.md$
+        pass_filenames: false
