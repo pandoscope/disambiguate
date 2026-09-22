@@ -26,7 +26,7 @@ src/disambiguate/
 
 The runtime imports nothing outside the standard library. `argparse`,
 `graphlib`, `pathlib`, `re`, `glob`, `shlex`, `importlib.resources`,
-`logging`. Dev-only tools — `pytest`, `python-semantic-release`, `build`,
+`logging`. Dev-only tools — `pytest`,
 `mypy`, `ruff` — live under `[dependency-groups].dev`.
 
 ## Pipeline

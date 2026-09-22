@@ -6,7 +6,7 @@ requires = [ "hatch-fancy-pypi-readme>=24.1", "hatchling>=1.27" ]
 
 [project]
 name = "disambiguate"
-version = "0.3.0"
+version = "0.4.0"
 description = """\
   A tool to resolve markdown glossary terms and their transitive dependencies in topological order in a GitHub project \
   or Obsidian vault.\
@@ -33,18 +33,15 @@ classifiers = [
 dynamic = [ "readme" ]
 dependencies = []
 urls."Bug Tracker" = "https://github.com/frankify-app/disambiguate/issues"
-urls.Changelog = "https://github.com/frankify-app/disambiguate/blob/main/CHANGELOG.md"
 urls.documentation = "https://disambiguate.readthedocs.io"
 urls.repository = "https://github.com/frankify-app/disambiguate"
 scripts.disambiguate = "disambiguate.cli:main"
 
 [dependency-groups]
 dev = [
-  "build>=1.2",
   "mypy>=1.8,<2",
   "pytest==9.*",
   "pytest-cov==7.*",
-  "python-semantic-release>=10",
   "ruff>=0.6",
   "typer>=0.23.1",
 ]
@@ -138,44 +135,6 @@ report.exclude_lines = [
   "pragma: no cover",
   "raise NotImplementedError",
 ]
-
-[tool.semantic_release]
-allow_zero_version = true
-version_toml = [ "pyproject.toml:project.version" ]
-version_variables = [ "src/disambiguate/__init__.py:__version__" ]
-commit_parser = "conventional"
-# DECISION: sync uv.lock inside the release commit. semantic-release only
-# rewrites version_toml/version_variables targets, so without `uv lock` here
-# the bump commit lands on main with a stale lockfile and the uv-lock CI hook
-# turns main red, blocking all future releases (see #21). build_command runs
-# after the version is written but before the release commit; `assets` adds
-# the refreshed lockfile to that commit.
-# The command runs inside the python-semantic-release Docker action, where the
-# runner's setup-uv does not apply — pip-install uv here. `set -e` because the
-# 0.1.2 release shipped a stale lockfile when `uv: command not found` was
-# swallowed and the build carried on (#23).
-assets = [ "uv.lock" ]
-build_command = """
-set -e
-python -m pip install --upgrade build uv
-uv lock
-python -m build
-"""
-upload_to_vcs_release = true
-branches.main.match = "main"
-branches.noop.match = "(?!main$)"
-branches.noop.prerelease = true
-changelog.exclude_commit_patterns = [
-  "chore(?:\\([^)]*?\\))?: .+",
-  "ci(?:\\([^)]*?\\))?: .+",
-  "refactor(?:\\([^)]*?\\))?: .+",
-  "style(?:\\([^)]*?\\))?: .+",
-  "test(?:\\([^)]*?\\))?: .+",
-  "build\\((?!deps\\): .+)",
-  "Merged? .*",
-  "Initial [Cc]ommit.*",         # codespell:ignore
-]
-changelog.environment.keep_trailing_newline = true
 
 [tool.disambiguate]
 # The stamped record-contract term mentions this repo's own `slug` term

@@ -112,6 +112,6 @@ pytest tests
 
 ## Making a new release
 
-The deployment should be automated and can be triggered from the Semantic Release workflow in GitHub. The next version will be based on [the commit logs](https://python-semantic-release.readthedocs.io/en/latest/commit-log-parsing.html#commit-log-parsing). This is done by [python-semantic-release](https://python-semantic-release.readthedocs.io/en/latest/index.html) via a GitHub action.
+A release is a version bump merged to `main`. Bump `project.version` in `pyproject.toml` and `__version__` in `src/disambiguate/__init__.py` in one PR. Run `uv lock`. Merge. The Release workflow publishes to PyPI, creates the tag and creates the GitHub release with generated notes. See [docs/releasing.md](docs/releasing.md).
 
 [gh-issues]: https://github.com/frankify-app/disambiguate/issues
