@@ -65,9 +65,9 @@ pip install disambiguate
 ## How it works
 
 [Prune](docs/glossary/prune.md) removes terms no file in the repository
-links, for repos that acquire a shared term set and use only part of it; a
-term consents by carrying an [auto-prune](docs/glossary/auto-prune.md)
-annotation.
+links. It serves repos that acquire a shared term set and use only part of
+it. A term consents by carrying an
+[auto-prune](docs/glossary/auto-prune.md) annotation.
 
 The pipeline parses each [term](docs/glossary/term.md) into a body plus a
 list of [cross-references](docs/glossary/cross-reference.md), builds a
