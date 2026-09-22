@@ -1,0 +1,17 @@
+{
+  "pr": "pandoscope/disambiguate#87",
+  "head": "052290a5f373dc59c7d98e2d48a19d618116e471",
+  "pass": "spec-fidelity",
+  "tier": "opus",
+  "findings": [
+    {
+      "file": ".github/workflows/release.yml",
+      "line": 90,
+      "rule": "The `release` job builds the Claude bundle and creates the tag and the GitHub release through the API with generated notes, the wheel, the sdist and the bundle.",
+      "input": "A push to `main` carrying the 0.4.0 bump: the `release` job runs `make \"dist/disambiguate-v0.4.0-claude-bundle.zip\"`, which invokes `scripts/build_claude_bundle.sh` line 10, `python3.12 -m pip download`. The job's only setup steps are `actions/checkout` (line 84) and `astral-sh/setup-uv` (line 85); the release job this replaces (origin/main `.github/workflows/release.yml` line 71) ran `actions/setup-python@v6.2.0` with `python-version: \"3.12\"` immediately before the identical `make` step, and every other workflow in the repo that runs Python tooling (`ci.yml` lines 52 and 75, `labels.yml` line 29) provisions Python the same way. The new job relies on the runner image's system `python3.12` carrying `pip`.",
+      "tier": "judgment",
+      "confidence": 45,
+      "finding": "The `release` job drops the Python 3.12 provisioning its predecessor installed for the bundle build, leaving `python3.12 -m pip download` dependent on the runner image's system interpreter, so the wheel, sdist and bundle the pull request promises on the GitHub release fail to build if that interpreter has no `pip`."
+    }
+  ]
+}
