@@ -1,9 +1,8 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v4.18.0
+_commit: v4.19.0
 _src_path: https://github.com/pandoscope/agentic-engineering-template
 agentic_actions_runner: ubuntu-latest
 agentic_disambiguate_roots: ''
-agentic_disambiguate_version: 0.3.0
 agentic_forge: github
 agentic_language: en
 agentic_max_file_tokens: 10000

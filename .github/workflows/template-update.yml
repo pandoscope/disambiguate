@@ -183,6 +183,12 @@ jobs:
           # not a lost update.
           bash scripts/ci/prune_glossary.sh || true
 
+          # The drift baseline is seeded the same way (#269): the task
+          # that writes it is skipped above, and a consumer's first
+          # update with the drift hook must land with its baseline in
+          # the same PR. The script leaves an existing file alone.
+          bash scripts/ci/drift_baseline.sh || true
+
           new_ref="$(awk '$1 == "_commit:" {print $2}' "$answers_file")"
           {
             echo "old_ref=$old_ref"
