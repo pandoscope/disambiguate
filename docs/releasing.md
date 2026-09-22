@@ -14,8 +14,8 @@ A release is a version bump merged to `main`. The `Release` workflow
    generated notes, the wheel, the sdist and the Claude bundle.
 
 Nothing pushes to `main`. The version bump arrives through a pull
-request like any other change, so the org's rulesets apply to it in
-full.
+request like any other change, so the [org](glossary/org.md)'s rulesets
+apply to it in full.
 
 ## Bumping
 
@@ -29,7 +29,8 @@ bumps patch, a breaking change bumps major.
 
 PyPI authenticates the workflow itself via OIDC. The trusted publisher
 on <https://pypi.org/manage/project/disambiguate/settings/publishing/>
-names owner `pandoscope`, repository `disambiguate`, workflow
+names owner `pandoscope`, repository
+[disambiguate](glossary/disambiguate.md), workflow
 `release.yml`, environment `pypi`. The `pypi` environment's deployment
 rule must allow the `main` branch, since the publish job runs before
 the tag exists.
