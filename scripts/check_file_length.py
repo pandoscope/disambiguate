@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Cap on what a source file costs to read, run over the files a commit
-touches (#239, #242).
+"""
+Cap what a source file costs to read, over the files a commit touches.
+
+Tickets #239 and #242.
 
 The cap is an estimated token count — file bytes / 4, rounded up —
 because tokens are what an agent pays for a Read: comments and blank
@@ -48,7 +50,8 @@ TICKET = re.compile(r"(?:[\w.-]+/[\w.-]+)?#\d+")
 
 
 def parse_allowlist(text: str) -> tuple[dict[str, str], list[str]]:
-    """`{path: ticket}` from the allowlist, and a problem per bad entry.
+    """
+    Return `{path: ticket}` from the allowlist, and a problem per bad entry.
 
     One entry per line: the path, then the ticket that will close it,
     after a `#`. A line carrying no ticket buys a permanent exemption,
@@ -76,7 +79,8 @@ def parse_allowlist(text: str) -> tuple[dict[str, str], list[str]]:
 
 
 def measure(path: str) -> tuple[int, int | None, str | None] | None:
-    """(estimated tokens, code lines, kind) — None for a non-text file.
+    """
+    Return (estimated tokens, code lines, kind), or None for a non-text file.
 
     Tokens are bytes / 4 rounded up: dependency-free, monotone, close
     enough for a hard cap, and charged to every file a model reads —
@@ -115,7 +119,8 @@ def review(
     allowlist: dict[str, str],
     missing: set[str],
 ) -> list[str]:
-    """Every problem this run found, as lines a reader can act on.
+    """
+    Return every problem this run found, as lines a reader can act on.
 
     `measures` holds only the files this run was handed, which is why an
     untouched overrun elsewhere is nobody's commit to block: the hook
@@ -162,6 +167,7 @@ def review(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Measure the paths given, judge them against the caps, exit 1 on a problem."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--max-tokens",
