@@ -1,101 +1,99 @@
+# Version-driven releases (docs/releasing.md): merging a PR that bumps
+# `project.version` IS the release. The gate compares the version on
+# main against the pushed tags; when the tag already exists every
+# publish job no-ops, so doc-only pushes to main stay silent. Nothing
+# here pushes to main, so the org's rulesets (pull request, ci-ok,
+# signatures) never see a bot commit (meta#155, #86). PyPI
+# authenticates the workflow itself via OIDC trusted publishing.
 name: Release
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    branches: [main]
 
-concurrency: release
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  gate:
+    name: "version gate"
     runs-on: ubuntu-latest
-    # Only release when CI succeeded for the head commit of `main`. The
-    # `workflow_run` trigger fires for every CI completion (including
-    # failures and runs on other branches), so we gate explicitly here.
-    if: >-
-      github.event.workflow_run.conclusion == 'success'
-      && github.event.workflow_run.head_branch == 'main'
-    permissions:
-      contents: write
-
+    outputs:
+      version: ${{ steps.decide.outputs.version }}
+      publish: ${{ steps.decide.outputs.publish }}
     steps:
-      # Mint an installation token for the release bot GitHub App. The app
-      # identity authors the version-bump commit/tag and is allow-listed in
-      # branch protection so it can push to `main`. App-token pushes recurse
-      # into other workflows, so the tag push triggers `publish.yml`
-      # (`GITHUB_TOKEN` pushes would not). The follow-up run on `main` from
-      # the version-bump commit finds no releasable commits and exits as a
-      # no-op.
-      - uses: actions/create-github-app-token@v3.2.0
-        id: app-token
-        with:
-          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      # Check out the `main` branch, NOT the CI run's head SHA: a bare-SHA
-      # checkout leaves the repo in detached HEAD state, and
-      # python-semantic-release matches release groups by branch name, so a
-      # detached HEAD always no-ops ("Detached HEAD state cannot match any
-      # release groups"). See #19.
-      - uses: actions/checkout@v6.0.2
-        with:
-          fetch-depth: 0
-          ref: main
-          token: ${{ steps.app-token.outputs.token }}
-
-      # Only release when the commit whose CI just turned green is still the
-      # head of `main`. If `main` has moved on, skip: the newer commit's own
-      # CI run will trigger its own release, and releasing here would tag a
-      # commit that never went green.
-      # DECISION:SCOPE guard-and-skip instead of `git checkout -B main
-      # <head_sha>`: forcing the branch onto the CI'd SHA would release a
-      # commit that is no longer main's tip, and the version-bump push would
-      # then conflict with the real `main`.
-      - name: Ensure `main` still points at the CI'd commit
-        id: guard
-        env:
-          CI_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      # The lockstep test guards version agreement on every PR; the gate
+      # re-checks at the moment it matters so a wheel can never be
+      # published under the wrong version.
+      - name: pyproject.toml and the module carry the same unpublished version
+        id: decide
         run: |
-          head="$(git rev-parse HEAD)"
-          if [ "${head}" = "${CI_HEAD_SHA}" ]; then
-            echo "release=true" >> "${GITHUB_OUTPUT}"
+          set -euo pipefail
+          version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          module="$(python3 -c 'import re; print(re.search(r"__version__ = \"(.+)\"", open("src/disambiguate/__init__.py").read()).group(1))')"
+          if [ "$module" != "$version" ]; then
+            echo "::error::src/disambiguate/__init__.py carries $module but pyproject.toml carries $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null 2>&1; then
+            echo "v$version is already tagged — nothing to publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
           else
-            echo "main is at ${head}, but CI ran for ${CI_HEAD_SHA}; skipping release"
-            echo "release=false" >> "${GITHUB_OUTPUT}"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/setup-python@v6.2.0
-        with:
-          python-version: "3.12"
+  pypi:
+    name: "publish to PyPI"
+    needs: gate
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    # The `pypi` environment carries required reviewers: the upload waits
+    # for a human. PyPI's trusted publisher references this environment
+    # and this workflow file.
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write # PyPI trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
-      - uses: astral-sh/setup-uv@v8.1.0
-        with:
-          python-version: "3.12"
-          # On no-op runs (bump commit, nothing to release) uv is never
-          # invoked on the runner, so the post-job cache step would error
-          # with "Cache path ... does not exist" and fail the job (#25).
-          ignore-nothing-to-cache: true
+      # --check-url makes re-runs idempotent: files already on the index
+      # are skipped instead of failing the upload.
+      - name: Build and publish the wheel and sdist
+        run: |
+          set -euo pipefail
+          uv build
+          uv publish --check-url https://pypi.org/simple/disambiguate/
 
-      - name: Run python-semantic-release
-        if: steps.guard.outputs.release == 'true'
-        id: release
-        uses: python-semantic-release/python-semantic-release@v10.5.3
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
+  release:
+    name: "tag + GitHub release"
+    needs: [gate, pypi]
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
-      - name: Build Claude bundle
-        if: steps.release.outputs.released == 'true'
+      - name: Build the wheel, the sdist and the Claude bundle
         env:
-          VERSION: ${{ steps.release.outputs.version }}
+          VERSION: ${{ needs.gate.outputs.version }}
         run: make "dist/disambiguate-v${VERSION}-claude-bundle.zip"
 
-      - name: Upload artifacts to GitHub Release
-        if: steps.release.outputs.released == 'true'
-        uses: python-semantic-release/publish-action@v10.5.3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release.outputs.tag }}
+      - name: Tag the published version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.gate.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "v$VERSION" --title "v$VERSION" --generate-notes \
+            dist/*.whl dist/*.tar.gz "dist/disambiguate-v${VERSION}-claude-bundle.zip"
