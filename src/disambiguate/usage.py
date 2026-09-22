@@ -33,6 +33,11 @@ _MAX_BYTES = 1_000_000
 _SNIFF_BYTES = 8_192
 
 
+def linked_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
+    """Seam for disambiguate#84: use is a link, never a bare mention."""
+    return mentioned_slugs(glossary, repo_root)
+
+
 def mentioned_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
     """
     Return the slugs of every term some file under `repo_root` mentions.
