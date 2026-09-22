@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 RELEASE_WORKFLOW = WORKFLOWS / "release.yml"
@@ -70,9 +68,6 @@ def test_semantic_release_is_gone() -> None:
     assert not (WORKFLOWS / "publish.yml").exists()
 
 
-@pytest.mark.xfail(
-    strict=True, reason="red: release job provisions Python 3.12 (review pr87)"
-)
 def test_release_job_provisions_python_before_building_the_bundle() -> None:
     """
     The release job sets Python 3.12 up before the bundle build.
