@@ -1,13 +1,17 @@
 """
-Usage by mention: a term the repository names anywhere is in use.
+Usage by link: a term any file in the repository links is in use.
 
 `prune` measured use as link reachability from the roots, so a fresh
-stamp lost every vendored term that agent docs, scripts and workflows
-name without linking (disambiguate#84). A mention is a case-insensitive,
-hyphen-aware whole-word occurrence of a term's canonical name or slug
-in any text file the repository carries. The glossary directory itself
-is excluded: a term naming another term is a cross-reference, and the
-reachability walk already owns those.
+stamp lost every vendored term that agent docs and scripts link while
+the roots do not (disambiguate#84). Use is an explicit cross-reference
+to the term, markdown or wiki syntax, in any text file the repository
+carries. The glossary directory itself is excluded: a term linking
+another term is a cross-reference, and the reachability walk already
+owns those.
+
+A bare mention never counts. The same spelling can carry another
+meaning, and keeping a term for it would blunt prune; an unlinked
+mention is what `--drift` reports instead.
 
 DECISION:SCOPE — "git-tracked" in the ticket is read as "what git would
 carry": tracked files plus untracked files that are not ignored. The
@@ -20,12 +24,11 @@ Without a usable git the tree is walked directly, minus `.git/`.
 from __future__ import annotations
 
 import os
-import re
 import subprocess
-from collections.abc import Iterator
 from pathlib import Path
 
 from disambiguate.glossary import Glossary
+from disambiguate.parser import extract_all_link_slugs
 
 # Files above this size are not prose anyone wrote; skipping them keeps
 # a stray dump from turning every prune into a full-disk read.
@@ -34,26 +37,18 @@ _SNIFF_BYTES = 8_192
 
 
 def linked_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
-    """Seam for disambiguate#84: use is a link, never a bare mention."""
-    return mentioned_slugs(glossary, repo_root)
-
-
-def mentioned_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
     """
-    Return the slugs of every term some file under `repo_root` mentions.
+    Return the slugs of every term some file under `repo_root` links.
 
     glossary: the loaded glossary; its directory is excluded from the scan.
     repo_root: the working tree to scan.
 
     Returns
     -------
-    A set of slugs, empty when nothing outside the glossary names a term.
+    A set of slugs, empty when nothing outside the glossary links a term.
+    A link whose slug names no term is ignored; code is never scanned.
 
     """
-    pattern = _mention_pattern(glossary)
-    if pattern is None:
-        return set()
-    by_variant = _variant_index(glossary)
     glossary_dir = glossary.root.resolve()
     found: set[str] = set()
     for path in _candidate_files(repo_root):
@@ -62,41 +57,12 @@ def mentioned_slugs(glossary: Glossary, repo_root: Path) -> set[str]:
         text = _read_text(path)
         if text is None:
             continue
-        for match in pattern.finditer(text):
-            found.add(by_variant[match.group(0).lower()])
-            if len(found) == len(glossary.terms):
-                return found
+        found.update(
+            slug for slug in extract_all_link_slugs(text) if slug in glossary.terms
+        )
+        if len(found) == len(glossary.terms):
+            return found
     return found
-
-
-def _variants(glossary: Glossary) -> Iterator[tuple[str, str]]:
-    """Yield `(spelling, slug)` for every spelling that counts as a mention."""
-    for slug, term in glossary.terms.items():
-        yield slug, slug
-        if term.canonical_name:
-            yield term.canonical_name, slug
-
-
-def _variant_index(glossary: Glossary) -> dict[str, str]:
-    return {spelling.lower(): slug for spelling, slug in _variants(glossary)}
-
-
-def _mention_pattern(glossary: Glossary) -> re.Pattern[str] | None:
-    """
-    One alternation over every spelling, longest first, hyphen-aware.
-
-    The boundary treats `[A-Za-z0-9-]` as word characters, the same rule
-    the drift matcher applies: `term` never matches inside
-    `unlinked-term`, so a compound term is not a mention of its parts.
-    """
-    spellings = sorted({s for s, _ in _variants(glossary)}, key=len, reverse=True)
-    if not spellings:
-        return None
-    alternation = "|".join(re.escape(s) for s in spellings)
-    return re.compile(
-        rf"(?<![A-Za-z0-9-])(?:{alternation})(?![A-Za-z0-9-])",
-        re.IGNORECASE,
-    )
 
 
 def _candidate_files(repo_root: Path) -> list[Path]:

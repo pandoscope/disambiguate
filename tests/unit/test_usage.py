@@ -15,8 +15,6 @@ import shutil
 import subprocess
 from pathlib import Path
 
-import pytest
-
 from disambiguate.glossary import load_glossary
 from disambiguate.usage import linked_slugs
 
@@ -62,7 +60,6 @@ def test_markdown_and_wiki_links_count_from_any_path(tmp_path: Path) -> None:
     assert _linked(repo) == {"session-memory", "agent-session"}
 
 
-@pytest.mark.xfail(strict=True, reason="red: use by link (disambiguate#84)")
 def test_a_bare_mention_is_not_use(tmp_path: Path) -> None:
     """The same spelling can mean something else; only a link commits."""
     repo = _repo(tmp_path, real_git=False)
@@ -76,7 +73,6 @@ def test_a_bare_mention_is_not_use(tmp_path: Path) -> None:
     assert _linked(repo) == set()
 
 
-@pytest.mark.xfail(strict=True, reason="red: use by link (disambiguate#84)")
 def test_a_link_inside_code_is_not_use(tmp_path: Path) -> None:
     repo = _repo(tmp_path, real_git=False)
     (repo / "notes.md").write_text(
