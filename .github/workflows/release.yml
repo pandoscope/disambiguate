@@ -1,10 +1,10 @@
-# Version-driven releases (docs/releasing.md): merging a PR that bumps
+# Version-driven releases (docs/releasing.md): a merged PR that bumps
 # `project.version` IS the release. The gate compares the version on
-# main against the pushed tags; when the tag already exists every
-# publish job no-ops, so doc-only pushes to main stay silent. Nothing
-# here pushes to main, so the org's rulesets (pull request, ci-ok,
-# signatures) never see a bot commit (meta#155, #86). PyPI
-# authenticates the workflow itself via OIDC trusted publishing.
+# main against the pushed tags. When the tag exists, every publish job
+# no-ops, so doc-only pushes to main stay silent. Nothing here pushes
+# to main, so the org's rulesets (pull request, ci-ok, signatures)
+# never see a bot commit (meta#155, #86). PyPI authenticates the
+# workflow itself through OIDC trusted publishing.
 name: Release
 
 on:
@@ -28,9 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      # The lockstep test guards version agreement on every PR; the gate
-      # re-checks at the moment it matters so a wheel can never be
-      # published under the wrong version.
+      # The lockstep test guards version agreement on every PR. The gate
+      # re-checks at the moment it matters, so no wheel ships under the
+      # wrong version.
       - name: pyproject.toml and the module carry the same unpublished version
         id: decide
         run: |
@@ -54,8 +54,8 @@ jobs:
     needs: gate
     if: needs.gate.outputs.publish == 'true'
     runs-on: ubuntu-latest
-    # The `pypi` environment carries required reviewers: the upload waits
-    # for a human. PyPI's trusted publisher references this environment
+    # The `pypi` environment carries required reviewers, so the upload
+    # waits for a human. PyPI's trusted publisher names this environment
     # and this workflow file.
     environment: pypi
     permissions:
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
-      # The bundle script runs `python3.12 -m pip download`; the runner
+      # The bundle script runs `python3.12 -m pip download`. The runner
       # image promises neither that interpreter nor pip in it.
       - uses: actions/setup-python@v6.2.0
         with:

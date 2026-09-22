@@ -112,6 +112,6 @@ pytest tests
 
 ## Making a new release
 
-A release is a version bump merged to `main`: bump `project.version` in `pyproject.toml` and `__version__` in `src/disambiguate/__init__.py` in one PR, run `uv lock`, and merge. The Release workflow publishes to PyPI and creates the tag and the GitHub release with generated notes. See [docs/releasing.md](docs/releasing.md).
+A release is a version bump merged to `main`. Bump `project.version` in `pyproject.toml` and `__version__` in `src/disambiguate/__init__.py` in one PR. Run `uv lock`. Merge. The Release workflow publishes to PyPI, creates the tag and creates the GitHub release with generated notes. See [docs/releasing.md](docs/releasing.md).
 
 [gh-issues]: https://github.com/frankify-app/disambiguate/issues
