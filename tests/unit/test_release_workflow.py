@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS = ROOT / ".github" / "workflows"
 RELEASE_WORKFLOW = WORKFLOWS / "release.yml"
@@ -66,3 +68,23 @@ def test_semantic_release_is_gone() -> None:
     assert "python-semantic-release" not in pyproject
     assert not (ROOT / "CHANGELOG.md").exists()
     assert not (WORKFLOWS / "publish.yml").exists()
+
+
+@pytest.mark.xfail(
+    strict=True, reason="red: release job provisions Python 3.12 (review pr87)"
+)
+def test_release_job_provisions_python_before_building_the_bundle() -> None:
+    """
+    The release job sets Python 3.12 up before the bundle build.
+
+    The bundle script calls `python3.12 -m pip download`; the runner image
+    guarantees neither (spec-fidelity review of pr87).
+    """
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    release_job = workflow[workflow.index("  release:") :]
+
+    setup_index = release_job.index("actions/setup-python")
+    bundle_index = release_job.index("claude-bundle.zip")
+
+    assert setup_index < bundle_index
+    assert 'python-version: "3.12"' in release_job[setup_index:bundle_index]
