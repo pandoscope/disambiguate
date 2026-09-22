@@ -2,7 +2,7 @@
 
 The `prune` command removes [terms](term.md) that are [orphans](lint.md) —
 not reachable from any root document —
-so a [glossary](glossary.md) converges to exactly the terms it uses.
+so a [glossary](glossary.md) converges to exactly the terms it links.
 
 A [cross-reference](cross-reference.md) from any text file the repository
 carries counts as use, the glossary directory itself excluded:
