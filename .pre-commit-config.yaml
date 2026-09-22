@@ -5,7 +5,7 @@
 # update. `scripts/ci/` joins the skills directories for that reason —
 # a consumer with stricter lint rules than the template's own would
 # otherwise fail on code it cannot change.
-exclude: ".copier-answers.agentic.yml|.all-contributorsrc|\\.agents/skills|\\.claude/skills|scripts/ci/"
+exclude: "CHANGELOG.md|.copier-answers.agentic.yml|.all-contributorsrc|\\.agents/skills|\\.claude/skills|scripts/ci/"
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg, pre-merge-commit, pre-push]
 
