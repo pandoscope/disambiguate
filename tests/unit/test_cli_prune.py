@@ -200,13 +200,17 @@ def test_default_run_deletes_a_chain_only_when_all_of_it_consents(
         assert (glossary / f"{slug}.md").exists() is not pruned
 
 
-def test_prune_keeps_terms_the_repo_mentions_without_linking(tmp_path: Path) -> None:
+@pytest.mark.xfail(strict=True, reason="red: use by link (disambiguate#84)")
+def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
+    tmp_path: Path,
+) -> None:
     """
     disambiguate#84: the fresh-stamp case.
 
-    Agent docs, scripts and workflows name vendored terms without linking
-    them; only the README links, and it links nothing. Before the first
-    commit, so every file is untracked.
+    Agent docs and scripts link vendored terms the README never links.
+    A term a script only names is not in use: the same spelling may
+    mean something else, and the unlinked mention is drift's finding.
+    Before the first commit, so every file is untracked.
     """
     subprocess.run(  # noqa: S603 - args are controlled test data.
         [GIT, "init", "-q"], cwd=tmp_path, check=True
@@ -218,6 +222,7 @@ def test_prune_keeps_terms_the_repo_mentions_without_linking(tmp_path: Path) -> 
         ("decision-memory", "Decision-memory"),
         ("grilling", "Grilling"),
         ("agent-session", "Agent session"),
+        ("only-named", "Only named"),
         ("never-named", "Never named"),
     ):
         (glossary / f"{slug}.md").write_text(
@@ -225,12 +230,15 @@ def test_prune_keeps_terms_the_repo_mentions_without_linking(tmp_path: Path) -> 
         )
     (tmp_path / "README.md").write_text("# Fresh\n\nNo links yet.\n", encoding="utf-8")
     (tmp_path / "AGENTS.md").write_text(
-        "The principal rules. Grilling records to decision-memory.\n",
+        "The [principal](docs/glossary/principal.md) rules. "
+        "[[grilling]] records to [the store](docs/glossary/decision-memory.md).\n",
         encoding="utf-8",
     )
     (tmp_path / "scripts").mkdir()
     (tmp_path / "scripts" / "run.sh").write_text(
-        "echo 'one agent session per ticket'\n", encoding="utf-8"
+        "# one [agent session](../docs/glossary/agent-session.md) per ticket\n"
+        "echo 'only named here, never linked'\n",
+        encoding="utf-8",
     )
 
     code, stdout, _ = run(["prune"], tmp_path)
@@ -240,5 +248,6 @@ def test_prune_keeps_terms_the_repo_mentions_without_linking(tmp_path: Path) -> 
     assert (glossary / "decision-memory.md").exists()
     assert (glossary / "grilling.md").exists()
     assert (glossary / "agent-session.md").exists()
+    assert not (glossary / "only-named.md").exists()
     assert not (glossary / "never-named.md").exists()
-    assert "never-named" in stdout
+    assert "only-named" in stdout
