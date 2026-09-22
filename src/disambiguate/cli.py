@@ -220,7 +220,13 @@ def _run_prune(argv: list[str]) -> int:
     roots = _resolve_lint_roots(args.roots)
     # A term any file in the repo links is in use (disambiguate#84): only
     # `prune` widens where a link counts; `--lint` keeps root reachability.
-    used = linked_slugs(glossary, find_repo_root(Path.cwd()))
+    # Without a `.git/` ancestor the working tree itself is the scan root:
+    # the walk needs no git, and a vault or an unpacked copy still prunes.
+    try:
+        scan_root = find_repo_root(Path.cwd())
+    except RepoRootNotFoundError:
+        scan_root = Path.cwd()
+    used = linked_slugs(glossary, scan_root)
     plan = plan_prune(glossary, roots, all_orphans=args.all_orphans, used=used)
 
     if args.dry_run:

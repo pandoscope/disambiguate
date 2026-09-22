@@ -252,7 +252,6 @@ def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
     assert "only-named" in stdout
 
 
-@pytest.mark.xfail(strict=True, reason="red: no-git tree prunes (review pr85)")
 def test_prune_runs_in_a_tree_without_git_when_roots_are_explicit(
     tmp_path: Path,
 ) -> None:
