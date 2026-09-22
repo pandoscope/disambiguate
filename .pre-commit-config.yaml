@@ -143,6 +143,11 @@ repos:
         name: repo-owned hooks
         entry: bash -c '[ "$#" -gt 0 ] && [ -f .pre-commit-config.local.yaml ] || exit 0; grep -qE "^\s*-\s*repo:" .pre-commit-config.local.yaml || exit 0; exec prek run --config .pre-commit-config.local.yaml --files "$@"' --
         language: system
+        # One nested run per invocation (#263): with filenames passed,
+        # a whole-tree run is split into batches that run concurrently,
+        # and every batch then runs the repo's type checker against one
+        # shared cache — mypy dies with INTERNAL ERROR in the race.
+        require_serial: true
       - id: disambiguate-lint
         name: disambiguate --lint
         entry: uvx disambiguate==0.3.0 --lint
