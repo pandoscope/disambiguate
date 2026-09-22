@@ -72,8 +72,8 @@ def test_release_job_provisions_python_before_building_the_bundle() -> None:
     """
     The release job sets Python 3.12 up before the bundle build.
 
-    The bundle script calls `python3.12 -m pip download`; the runner image
-    guarantees neither (spec-fidelity review of pr87).
+    The bundle script calls `python3.12 -m pip download`. The runner image
+    guarantees neither that interpreter nor pip (spec-fidelity review of pr87).
     """
     workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
     release_job = workflow[workflow.index("  release:") :]
