@@ -1,5 +1,5 @@
 """
-Remove glossary terms that nothing links or mentions.
+Remove glossary terms that no file in the repository links.
 
 A repo can acquire terms it does not link. Those are `orphan` findings,
 so `--lint` fails on a repo that did nothing wrong. Exempting them
@@ -54,8 +54,8 @@ def plan_prune(
     glossary: the loaded glossary.
     roots: documents reachability is measured from.
     all_orphans: also remove orphans that never declared consent.
-    used: slugs the repository mentions without linking (disambiguate#84).
-        Each joins the roots of the walk, so a mentioned term is in use
+    used: slugs some file outside the roots links (disambiguate#84).
+        Each joins the roots of the walk, so a linked term is in use
         and so is everything it links.
 
     Returns

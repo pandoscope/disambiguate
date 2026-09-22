@@ -200,7 +200,6 @@ def test_default_run_deletes_a_chain_only_when_all_of_it_consents(
         assert (glossary / f"{slug}.md").exists() is not pruned
 
 
-@pytest.mark.xfail(strict=True, reason="red: use by link (disambiguate#84)")
 def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
     tmp_path: Path,
 ) -> None:
