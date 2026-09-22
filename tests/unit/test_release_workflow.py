@@ -1,70 +1,68 @@
-"""Tests for the GitHub release and publish workflows."""
+"""The release workflow: a merged version bump is the release (docs/releasing.md)."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
-PUBLISH_WORKFLOW = ROOT / ".github" / "workflows" / "publish.yml"
+WORKFLOWS = ROOT / ".github" / "workflows"
+RELEASE_WORKFLOW = WORKFLOWS / "release.yml"
 
 
-def test_release_workflow_does_not_publish_to_pypi() -> None:
-    """Release workflow no longer uploads to PyPI — that moved to publish.yml."""
+def test_release_runs_on_pushes_to_main_only() -> None:
+    """A version bump merged to main is the trigger; tags trigger nothing."""
     workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
-    assert "pypa/gh-action-pypi-publish" not in workflow
-    assert "environment:" not in workflow
+    assert "branches: [main]" in workflow
+    assert "tags:" not in workflow
+    assert "workflow_run" not in workflow
 
 
-def test_release_workflow_builds_bundle_before_uploading_artifacts() -> None:
-    """Release workflow builds the Claude bundle, then uploads to the GitHub Release."""
+def test_gate_skips_a_version_that_is_already_tagged() -> None:
+    """The gate compares pyproject's version against the pushed tags."""
     workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
-    bundle_build_index = workflow.index("Build Claude bundle")
-    github_release_index = workflow.index("Upload artifacts to GitHub Release")
-
-    assert bundle_build_index < github_release_index
-
-
-def test_publish_workflow_triggers_only_on_version_tags() -> None:
-    """Publish workflow runs only on `v*` tag pushes."""
-    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
-
-    assert "tags:" in workflow
-    assert '"v*"' in workflow
-    assert "branches:" not in workflow
+    assert '["project"]["version"]' in workflow
+    assert 'git ls-remote --exit-code --tags origin "refs/tags/v$version"' in workflow
+    assert "publish=false" in workflow
 
 
-def test_publish_workflow_uses_pypi_environment_with_oidc() -> None:
-    """Publish workflow runs in the gated `pypi` environment with OIDC enabled."""
-    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+def test_nothing_pushes_to_main() -> None:
+    """No bot commit ever meets the main rulesets (meta#155)."""
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
-    assert "environment:\n      name: pypi" in workflow
+    assert "git push" not in workflow
+    assert "semantic-release" not in workflow
+    assert "create-github-app-token" not in workflow
+
+
+def test_pypi_job_publishes_through_the_gated_environment_with_oidc() -> None:
+    """The upload waits for the pypi environment's reviewers and uses OIDC."""
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+
+    assert "environment: pypi" in workflow
     assert "id-token: write" in workflow
+    assert "uv publish --check-url https://pypi.org/simple/disambiguate/" in workflow
 
 
-def test_publish_workflow_downloads_only_python_distributions() -> None:
-    """Publish workflow downloads wheels/sdists from the Release, not the Claude bundle."""
-    workflow = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+def test_release_job_builds_the_bundle_before_creating_the_release() -> None:
+    """The GitHub release carries the wheel, the sdist and the Claude bundle."""
+    workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
-    download_index = workflow.index("gh release download")
-    publish_index = workflow.index("pypa/gh-action-pypi-publish@release/v1")
+    bundle_index = workflow.index("claude-bundle.zip")
+    release_index = workflow.index("gh release create")
 
-    assert download_index < publish_index
-    assert "*.whl" in workflow
-    assert "*.tar.gz" in workflow
-    assert "claude-bundle" not in workflow
+    assert bundle_index < release_index
+    assert "--generate-notes" in workflow
+    assert "dist/*.whl" in workflow
+    assert "dist/*.tar.gz" in workflow
 
 
-def test_changelog_carries_semantic_release_insertion_flag() -> None:
-    """
-    CHANGELOG.md must contain the insertion flag semantic-release writes at.
+def test_semantic_release_is_gone() -> None:
+    """No config, no changelog, no separate publish workflow remain."""
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
 
-    `changelog.mode` defaults to `update`, which inserts new sections at this
-    flag and silently no-ops without it — five releases shipped no notes that
-    way (#50).
-    """
-    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-
-    assert "<!-- version list -->" in changelog
+    assert "semantic_release" not in pyproject
+    assert "python-semantic-release" not in pyproject
+    assert not (ROOT / "CHANGELOG.md").exists()
+    assert not (WORKFLOWS / "publish.yml").exists()

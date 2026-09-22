@@ -92,8 +92,8 @@ dogfood.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Conventional commits required —
-the release workflow uses them to compute the next version.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Conventional commits required.
+A release is a version bump merged to `main` ([docs/releasing.md](docs/releasing.md)).
 
 ## Org glossary
 
