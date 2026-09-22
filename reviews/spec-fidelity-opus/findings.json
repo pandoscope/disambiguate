@@ -1,0 +1,26 @@
+{
+  "pr": "pandoscope/disambiguate#85",
+  "head": "0165c0e0f626252a8a0f5cab11c68b788e109914",
+  "pass": "spec-fidelity",
+  "tier": "opus",
+  "findings": [
+    {
+      "file": "src/disambiguate/cli.py",
+      "line": 223,
+      "rule": "Without a usable git the tree is walked directly, minus `.git/`.",
+      "input": "A tree with no `.git/` directory at all (an Obsidian vault, an exported or unpacked copy of a repo) with roots supplied explicitly: `DISAMBIGUATE_ROOTS=README.md disambiguate prune --dry-run`, or `disambiguate prune --roots README.md --dry-run`. On origin/main `_resolve_lint_roots` returns the explicit roots without ever calling `find_repo_root`, so the run planned a prune and exited 0. At head, `_run_prune` calls `find_repo_root(Path.cwd())` unconditionally on cli.py:223; `discovery.find_repo_root` raises `RepoRootNotFoundError` when it reaches the filesystem root without seeing `.git`, `main` catches it and returns EXIT_FAILURE, so the command now logs \"No `.git/` directory found walking up from ...\" and exits 1 without pruning.",
+      "tier": "hard",
+      "confidence": 85,
+      "finding": "The no-git fallback the pull request body promises is unreachable from the CLI when the tree has no `.git/` directory, because `_run_prune` resolves the scan root with `find_repo_root`, which raises instead of falling back to the direct tree walk in `usage._candidate_files`, turning a previously working `prune` with explicit roots into an exit-1 failure."
+    },
+    {
+      "file": "tests/unit/test_cli_prune.py",
+      "line": 203,
+      "rule": "template's post-stamp prune keeps principal, decision-memory, session-memory, grilling, agent session on a fresh stamp",
+      "input": "A fresh stamp of pandoscope/agentic-engineering-template followed by its post-stamp `prune`. No fixture or test in this pull request stamps the template and runs that prune; the nearest test, `test_prune_keeps_terms_any_file_links_and_drops_bare_mentions`, builds a synthetic tree by hand and does not exercise `session-memory` at all. The pull request body states the criterion is \"Not in this PR\" and defers it to pandoscope/agentic-engineering-template \"once its disambiguate pin moves to the release carrying this (0.4.0, #87)\", while the body still opens with `CLOSES #84`.",
+      "tier": "judgment",
+      "confidence": 65,
+      "finding": "The pull request declares `CLOSES #84` while the fifth acceptance criterion of #84 is left unverified and explicitly deferred to another repository and a future release, so merging closes the ticket with an acceptance criterion outstanding."
+    }
+  ]
+}
