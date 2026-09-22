@@ -250,3 +250,26 @@ def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
     assert not (glossary / "only-named.md").exists()
     assert not (glossary / "never-named.md").exists()
     assert "only-named" in stdout
+
+
+@pytest.mark.xfail(strict=True, reason="red: no-git tree prunes (review pr85)")
+def test_prune_runs_in_a_tree_without_git_when_roots_are_explicit(
+    tmp_path: Path,
+) -> None:
+    """
+    A tree without `.git/` prunes with explicit roots.
+
+    A vault or an unpacked copy has no git; the walk never needed one
+    (spec-fidelity review of pr85).
+    """
+    glossary = tmp_path / "docs" / "glossary"
+    glossary.mkdir(parents=True)
+    (glossary / "kept.md").write_text(f"## Kept\n\n{CONSENT}\n\nStays.\n")
+    (glossary / "gone.md").write_text(f"## Gone\n\n{CONSENT}\n\nGoes.\n")
+    (tmp_path / "README.md").write_text("See [kept](docs/glossary/kept.md).\n")
+
+    code, _stdout, stderr = run(["prune", "--roots", "README.md"], tmp_path)
+
+    assert code == 0, stderr
+    assert (glossary / "kept.md").exists()
+    assert not (glossary / "gone.md").exists()
