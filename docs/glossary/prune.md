@@ -4,6 +4,15 @@ The `prune` command removes [terms](term.md) that are [orphans](lint.md) —
 not reachable from any root document —
 so a [glossary](glossary.md) converges to exactly the terms it links.
 
+A [cross-reference](cross-reference.md) from any text file in the repository
+counts as use. The glossary directory itself is excluded.
+A linked term joins the roots of the reachability walk;
+it stays, and so does everything it links.
+A bare [term-mention](term-mention.md) never counts:
+the same spelling can carry another meaning.
+[Drift](drift.md) reports unlinked mentions.
+Only `prune` widens use this way; `--lint` keeps measuring reachability.
+
 Removal is consent-based.
 A term opts in by carrying an [auto-prune](auto-prune.md) annotation;
 `prune` removes only orphans that consent.

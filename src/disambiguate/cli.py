@@ -10,7 +10,7 @@ Argparse-driven dispatch with five operating modes:
 - `--drift`: detect prose drifting from the glossary
 
 Plus one verb, dispatched before the parser: `prune`, which removes
-terms nothing links.
+terms no file in the repository links.
 """
 
 from __future__ import annotations
@@ -49,6 +49,7 @@ from .prune import apply_prune, format_dry_run, plan_prune
 from .renderer import build_explain_preamble, render_terms
 from .resolver import CycleError, UnknownSlugError, resolve
 from .suppressions import load_drift_config
+from .usage import linked_slugs
 
 logger = logging.getLogger(__name__)
 
@@ -175,8 +176,8 @@ def _build_prune_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="disambiguate prune",
         description=(
-            "Remove glossary terms nothing links. A term consents by "
-            "carrying a `<!-- d10e: auto-prune -->` annotation."
+            "Remove glossary terms no file in the repository links. A term "
+            "consents by carrying a `<!-- d10e: auto-prune -->` annotation."
         ),
     )
     parser.add_argument(
@@ -217,7 +218,17 @@ def _run_prune(argv: list[str]) -> int:
 
     glossary = load_glossary(_user_glossary_path(args.glossary))
     roots = _resolve_lint_roots(args.roots)
-    plan = plan_prune(glossary, roots, all_orphans=args.all_orphans)
+    # A link from any file in the repository keeps a term (disambiguate#84).
+    # Only `prune` counts such links; `--lint` still measures reachability
+    # from the roots. Without a `.git/` ancestor, the scan root is the
+    # working directory: the scan needs no git, so a vault or an unpacked
+    # copy still prunes.
+    try:
+        scan_root = find_repo_root(Path.cwd())
+    except RepoRootNotFoundError:
+        scan_root = Path.cwd()
+    used = linked_slugs(glossary, scan_root)
+    plan = plan_prune(glossary, roots, all_orphans=args.all_orphans, used=used)
 
     if args.dry_run:
         print(format_dry_run(plan))

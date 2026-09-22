@@ -233,3 +233,26 @@ def test_dry_run_distinguishes_no_orphans_from_protected_orphans(
     message = format_dry_run(plan_prune(held, held_roots))
     assert "no orphaned terms" not in message
     assert "--all-orphans" in message
+
+
+def test_used_terms_count_as_roots_and_keep_what_they_link(tmp_path: Path) -> None:
+    """
+    A term some file links is in use, and so is every term it links.
+
+    disambiguate#84: before, use meant reachability from the roots only.
+    A vendored term that agent docs link but the roots never reach was
+    pruned. Now a used slug joins the roots of the walk.
+    """
+    glossary, roots = build(
+        tmp_path,
+        {
+            "linked": f"## Linked\n\n{CONSENT}\n\nSee [child](child.md).\n",
+            "child": f"## Child\n\n{CONSENT}\n\nLinked only from linked.\n",
+            "silent": f"## Silent\n\n{CONSENT}\n\nNobody links this.\n",
+        },
+    )
+
+    plan = plan_prune(glossary, roots, used={"linked"})
+
+    assert plan.remove == ["silent"]
+    assert plan.additional == []

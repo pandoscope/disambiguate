@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import io
 import os
+import shutil
+import subprocess
 import sys
 import types
 from contextlib import redirect_stderr, redirect_stdout
@@ -19,6 +21,9 @@ import pytest
 from disambiguate.cli import main
 
 CONSENT = "<!-- d10e: auto-prune -->"
+# Resolved once: the fixtures need a real repo, and a resolved path is
+# what the bandit rule on partial executable paths asks for.
+GIT = shutil.which("git") or "git"
 
 
 @pytest.fixture(autouse=True)
@@ -193,3 +198,77 @@ def test_default_run_deletes_a_chain_only_when_all_of_it_consents(
     assert code == 0
     for slug in CHAIN_SLUGS[: len(consents)]:
         assert (glossary / f"{slug}.md").exists() is not pruned
+
+
+def test_prune_keeps_terms_any_file_links_and_drops_bare_mentions(
+    tmp_path: Path,
+) -> None:
+    """
+    disambiguate#84: the fresh-stamp case.
+
+    Agent docs and a script link vendored terms; README links none.
+    A term the script only names is not in use: same spelling may
+    mean something else, and drift reports the unlinked mention.
+    The run happens before the first commit, so every file is untracked.
+    """
+    subprocess.run(  # noqa: S603 - args are controlled test data.
+        [GIT, "init", "-q"], cwd=tmp_path, check=True
+    )
+    glossary = tmp_path / "docs" / "glossary"
+    glossary.mkdir(parents=True)
+    for slug, name in (
+        ("principal", "Principal"),
+        ("decision-memory", "Decision-memory"),
+        ("grilling", "Grilling"),
+        ("agent-session", "Agent session"),
+        ("only-named", "Only named"),
+        ("never-named", "Never named"),
+    ):
+        (glossary / f"{slug}.md").write_text(
+            f"## {name}\n\n{CONSENT}\n\nVendored.\n", encoding="utf-8"
+        )
+    (tmp_path / "README.md").write_text("# Fresh\n\nNo links yet.\n", encoding="utf-8")
+    (tmp_path / "AGENTS.md").write_text(
+        "The [principal](docs/glossary/principal.md) rules. "
+        "[[grilling]] records to [the store](docs/glossary/decision-memory.md).\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "run.sh").write_text(
+        "# one [agent session](../docs/glossary/agent-session.md) per ticket\n"
+        "echo 'only named here, never linked'\n",
+        encoding="utf-8",
+    )
+
+    code, stdout, _ = run(["prune"], tmp_path)
+
+    assert code == 0
+    assert (glossary / "principal.md").exists()
+    assert (glossary / "decision-memory.md").exists()
+    assert (glossary / "grilling.md").exists()
+    assert (glossary / "agent-session.md").exists()
+    assert not (glossary / "only-named.md").exists()
+    assert not (glossary / "never-named.md").exists()
+    assert "only-named" in stdout
+
+
+def test_prune_runs_in_a_tree_without_git_when_roots_are_explicit(
+    tmp_path: Path,
+) -> None:
+    """
+    A tree without `.git/` prunes when roots are explicit.
+
+    A vault or an unpacked copy has no git. The link scan never needed
+    one (spec-fidelity review of pr85).
+    """
+    glossary = tmp_path / "docs" / "glossary"
+    glossary.mkdir(parents=True)
+    (glossary / "kept.md").write_text(f"## Kept\n\n{CONSENT}\n\nStays.\n")
+    (glossary / "gone.md").write_text(f"## Gone\n\n{CONSENT}\n\nGoes.\n")
+    (tmp_path / "README.md").write_text("See [kept](docs/glossary/kept.md).\n")
+
+    code, _stdout, stderr = run(["prune", "--roots", "README.md"], tmp_path)
+
+    assert code == 0, stderr
+    assert (glossary / "kept.md").exists()
+    assert not (glossary / "gone.md").exists()
