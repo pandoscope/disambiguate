@@ -1,0 +1,58 @@
+# The merge bot (agentic-engineering-template#260, ruled on
+# pandoscope/meta#132).
+#
+# GitHub Free enforces no rulesets on a private repo. There ci-ok is
+# advisory and the merge button works on red. Repository permissions
+# still hold, so the plan uses them: on a private repo that needs
+# branch protection, no human holds write to main. THIS job, acting as
+# the release bot, is the one path in.
+#
+# The job fires when the CI gate completes or a review lands. It
+# re-judges the head with the aggregate's own verdict: every job of
+# every PR workflow succeeded, `merge approval` included. It then
+# merges with a merge commit. It never fabricates green. A PR that the
+# gate rejects stays open. The job never merges a draft. On a public
+# repo, or with BOT_MERGE_ENABLED unset, the job says so in one line
+# and does nothing. session-memory does not render it.
+name: Merge bot
+
+on:
+  workflow_run:
+    workflows: ["CI gate"]
+    types: [completed]
+  pull_request_review:
+    types: [submitted]
+
+# The job merges with the release-bot token minted below. GitHub then
+# attributes the merge to the bot, and CI runs on main. The default
+# token only reads.
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: bot-merge-${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    name: "merge when green"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Mint release-bot installation token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+        with:
+          app-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - name: Merge the PR at this head once every PR workflow is green
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.event.pull_request.head.sha }}
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+          BOT_MERGE_ENABLED: ${{ vars.BOT_MERGE_ENABLED }}
+        run: python3 scripts/ci/check_gate.py merge
