@@ -2,7 +2,7 @@
 name: to-tickets
 description: Break a plan, spec, or the current conversation into tracer-bullet tickets with blocking edges, published to the project tracker. Use when splitting approved work into issues.
 metadata.derived-from: https://github.com/mattpocock/skills/blob/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/engineering/to-tickets/SKILL.md
-metadata.derivation-note: Adds reproducible-build-spec invariant (self-containedness litmus test, bugfix-as-spec-correction) + grilling gate + reconciliation on completion. Tracker deferred to consumer AGENTS.md; vocabulary pinned to docs/glossary (`uvx disambiguate`), decisions to writing-adrs/documenting-decisions. Upstream `/setup-matt-pocock-skills` + local-files tracker mode dropped. Caveman-condensed; vertical slices, blocking edges, expand–contract, user quiz kept.
+metadata.derivation-note: Adds reproducible-build-spec invariant (self-containedness litmus test, bugfix-as-spec-correction) + grilling gate + reconciliation on completion. Tracker deferred to consumer AGENTS.md; vocabulary pinned to docs/glossary (`uvx disambiguate`), decisions to writing-adrs/documenting-decisions; new vocabulary declared under an Introduces list (link-as-if-exists). Upstream `/setup-matt-pocock-skills` + local-files tracker mode dropped. Caveman-condensed; vertical slices, blocking edges, expand–contract, user quiz kept.
 disable-model-invocation: true
 ---
 
@@ -21,6 +21,10 @@ Issue stream = buildable spec. Every rule below serves this.
 Every outcome-shaping decision lives **in issue itself**, or durable docs it references — ADRs (`writing-adrs`), glossary terms (`docs/glossary/`). Never conversation context, tribal knowledge, implementer discretion.
 
 **Litmus test:** two independent implementers could build meaningfully different things → ticket underspecified. Add decision to ticket, or record as ADR/glossary term + reference.
+
+### New vocabulary
+
+Ticket introducing a domain concept declares it under `## Introduces` — one slug per line, each linked **as if the term file already existed** (`docs/glossary/<slug>.md`, link-as-if-exists convention). Implementation creates the file; until then `--lint` reports broken cross-reference — that IS the enforcement, not a bug. The list = durable record of vocabulary the ticket adds.
 
 ### Bugfixes = spec corrections
 
@@ -110,6 +114,10 @@ Every outcome-shaping decision, stated or referenced (ADR/glossary). Bugfix: spe
 
 - [ ] Criterion 1
 - [ ] Criterion 2
+
+## Introduces
+
+- [slug](docs/glossary/slug.md) — one-line meaning. Omit if no new term.
 
 ## Blocked by
 
