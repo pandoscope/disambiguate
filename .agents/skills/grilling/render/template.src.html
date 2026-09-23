@@ -1,0 +1,334 @@
+<title>Grilling</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --card: #ffffff;
+    --fg: #1f2328;
+    --muted: #6a6f76;
+    --border: #e0ddd6;
+    --accent: #7752c4;
+    --accent-soft: #efe9fb;
+    --accent2: #0d8a74;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #191a1d;
+      --card: #222329;
+      --fg: #e8e6e1;
+      --muted: #9a9fa8;
+      --border: #34363d;
+      --accent: #a487e8;
+      --accent-soft: #2d2540;
+      --accent2: #3fbfa4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #191a1d;
+    --card: #222329;
+    --fg: #e8e6e1;
+    --muted: #9a9fa8;
+    --border: #34363d;
+    --accent: #a487e8;
+    --accent-soft: #2d2540;
+    --accent2: #3fbfa4;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 13px/1.45 system-ui, sans-serif;
+    margin: 0;
+    padding: 0.9rem 0.9rem;
+  }
+  #app {
+    max-width: 46rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .session-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .session-title {
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .question-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .nav-position {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  button {
+    font: inherit;
+    color: var(--fg);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.2rem 0.7rem;
+    cursor: pointer;
+  }
+  button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  button:not(:disabled):hover {
+    border-color: var(--accent);
+  }
+  .question-header .question-seq {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .question-header .question-text {
+    margin: 0.15rem 0 0;
+    font-size: 1.15rem;
+    line-height: 1.3;
+  }
+  .section-heading {
+    margin: 0 0 0.2rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .context,
+  .option {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+  }
+  .context-text {
+    margin: 0;
+  }
+  .options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .option-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .option-number {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 0 0.5rem;
+  }
+  .option-label {
+    font-weight: 650;
+    margin-top: 0.2rem;
+  }
+  .option-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .option-badge {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 999px;
+    padding: 0 0.45em;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+  .option-if {
+    margin: 0.15rem 0 0;
+    font-style: italic;
+    color: var(--muted);
+  }
+  .option-entails {
+    margin: 0.15rem 0 0;
+  }
+  .option-why-not {
+    margin: 0.15rem 0 0;
+    color: var(--muted);
+  }
+  .option {
+    cursor: pointer;
+    position: relative;
+  }
+  .option:has(.option-mark) {
+    padding-right: 3.1rem;
+  }
+  .option:hover {
+    border-color: var(--accent);
+  }
+  .option.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .option-entails code,
+  .why-reason-text code {
+    font-family: ui-monospace, monospace;
+    font-size: 0.9em;
+    background: var(--accent-soft);
+    border-radius: 4px;
+    padding: 0 0.25em;
+  }
+  .free-text-input,
+  .correction-input,
+  .export-box {
+    font: inherit;
+    color: var(--fg);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.35rem 0.55rem;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.5rem;
+  }
+  .free-text-input,
+  .export-box {
+    min-height: 3.2rem;
+    resize: vertical;
+  }
+  .export-box {
+    font-family: ui-monospace, monospace;
+    font-size: 0.85rem;
+  }
+  .option-mark {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.55rem;
+    line-height: 0;
+    cursor: help;
+  }
+  .score-donut-text {
+    fill: var(--fg);
+    font-size: 10px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .option-proposed {
+    margin: 0.15rem 0 0;
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+  .option-entails sup a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .lineage-rule-marker,
+  .lineage-rule-weight {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .lineage-rule:target {
+    background: var(--accent-soft);
+    border-radius: 6px;
+  }
+  .disconfirm-toggle {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    margin-left: 0.6rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .why-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+  }
+  .why-reason {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+    cursor: pointer;
+  }
+  .question-controls {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .skip-button,
+  .copy-button {
+    color: var(--muted);
+  }
+  .copy-button {
+    color: var(--accent);
+    font-weight: 650;
+  }
+  .copy-note {
+    margin: 0.4rem 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .session-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+  }
+  .near-tie {
+    margin: 0;
+    padding: 0.35rem 0.7rem;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 8px 8px 0;
+  }
+  .lineage {
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+  }
+  .lineage-cold {
+    margin: 0 0 0.4rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .lineage-rules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .lineage-rule-name {
+    font-weight: 650;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  a.lineage-rule-name:hover {
+    text-decoration: underline;
+  }
+  .lineage-rule-disposition {
+    color: var(--muted);
+  }
+  .answer-hint {
+    margin: 0;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+  }
+</style>
+<script type="application/json" id="decision-context">__DECISION_CONTEXT_JSON__</script>
+<div id="app"></div>
+<script>
+  /*__PAGE_JS__*/
+</script>
