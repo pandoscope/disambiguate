@@ -91,6 +91,29 @@ def post(path, token):
         return response.status
 
 
+def put_json(path, body, token):
+    """PUT one JSON body — the merge bot's write door (#260).
+
+    Only `PUT /pulls/{n}/merge` goes through this door. The bot reaches
+    it only after the aggregate judged the head green. Everything that
+    the gate JUDGES comes through the read doors above. The scheme guard
+    is the same. Returns the HTTP status.
+    """
+    req = urllib.request.Request(  # noqa: S310 — api_url rejects every other scheme
+        api_url(path),
+        data=json.dumps(body).encode(),
+        method="PUT",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+    )
+    with urllib.request.urlopen(req) as response:  # noqa: S310 — checked above
+        return response.status
+
+
 def paginate(path, token, key=None):
     """Every page of a list endpoint, 100 at a time."""
     sep = "&" if "?" in path else "?"

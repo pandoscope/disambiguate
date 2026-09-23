@@ -14,6 +14,9 @@ One subcommand per job in ci-ok.yml:
   rerun      stale non-green gate runs on this head SHA are re-run in
              place, so a superseded red stops blocking merge (#190) —
              gate-rerun.yml's job, not ci-ok.yml's
+  merge      the release bot merges a private repo's PR once every job
+             of every PR workflow on its head succeeded (#260) —
+             bot-merge.yml's job, not ci-ok.yml's
   leaks      no PUSH_BLOCKLIST value appears on any surface this PR
   payload    no PUSH_BLOCKLIST value in the one item an issue or
              comment event just published (#208; not a gate)
@@ -35,6 +38,7 @@ import sys
 from gate_aggregate import run_aggregate
 from gate_approval import run_approval
 from gate_leaks import run_leaks
+from gate_merge import run_merge
 from gate_payload import run_payload
 from gate_rerun import run_rerun
 from gate_reviews import run_reviews
@@ -50,6 +54,7 @@ def main():
         "aggregate": run_aggregate,
         "rerun": run_rerun,
         "leaks": run_leaks,
+        "merge": run_merge,
         "payload": run_payload,
     }
     if verb not in runners:
