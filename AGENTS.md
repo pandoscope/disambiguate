@@ -9,7 +9,7 @@ Repo: <https://github.com/pandoscope/disambiguate>
 Ubiquitous language is defined in docs/glossary/. Use
 
 ```bash
-uvx disambiguate==0.3.0 <term>
+uvx disambiguate==0.4.0 <term>
 ```
 
 to get a topologically ordered glossary disambiguating all relevant terms
@@ -18,16 +18,27 @@ to understand the given term.
 Before working on a ticket, run:
 
 ```bash
-uvx disambiguate==0.3.0 --from <ticket-file>
+uvx disambiguate==0.4.0 --from <ticket-file>
 ```
 
 or for GitHub issues:
 
 ```bash
-gh issue view <number> --json body -q .body | uvx disambiguate==0.3.0 --from -
+gh issue view <number> --json body -q .body | uvx disambiguate==0.4.0 --from -
 ```
 
 to resolve all referenced terms at once.
+
+Prose that names a term without linking it, or uses an avoided spelling,
+is drift. The `disambiguate --drift` hook reports it on every commit.
+`.drift-baseline.json` lists the findings this repo carried when the hook
+arrived; a new finding fails, and a fixed one fails until
+
+```bash
+uvx disambiguate==0.4.0 --drift --write-baseline
+```
+
+shrinks the file and the shrink is committed.
 
 ### Architecture
 
@@ -326,3 +337,5 @@ When something fails that automation or an instruction could have prevented — 
 ## Project Conventions
 
 Repo-specific rules live in [docs/conventions.md](docs/conventions.md). Copier seeds that file once and never overwrites it — put rich local conventions there, not in this template-owned file.
+
+Repo-specific session bootstrap — tools a fresh session needs that the template does not install — lives in `scripts/session-start.local.sh`, seeded the same way. The stamped `.claude/settings.json` runs it after its own SessionStart hooks; that settings file is template-owned and never edited locally.

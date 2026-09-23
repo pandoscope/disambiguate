@@ -41,6 +41,8 @@ files in either [GitHub format](docs/glossary/github-format.md) or
 and get back a self-contained markdown document where every term is
 defined before it is referenced.
 
+The vendored skills use one org term: [grilling](docs/glossary/grilling.md).
+
 ## Quickstart
 
 ```bash

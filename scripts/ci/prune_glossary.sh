@@ -13,10 +13,12 @@
 # terms, restores the tracked ones so a commit hook never leaves the
 # tree mutated, and exits 1.
 #
-# The pin is agentic_disambiguate_version: read from
-# .copier-answers.agentic.yml in a stamped repo, from copier.yml's
-# default in the template itself. disambiguate is pre-alpha; an unpinned
-# run would float across breaking releases.
+# The pin is agentic_disambiguate_version, rendered into
+# scripts/ci/disambiguate-version in a stamped repo (#269); the template
+# root reads copier.yml's default instead. The answers file is never
+# read: the question is `when: false`, so a key left there is stale.
+# disambiguate is pre-alpha; an unpinned run would float across
+# breaking releases.
 set -euo pipefail
 
 fail_on_removal=0
@@ -33,9 +35,8 @@ done
 cd "$(git rev-parse --show-toplevel)"
 
 pin=""
-if [ -f .copier-answers.agentic.yml ]; then
-    pin="$(awk '$1 == "agentic_disambiguate_version:" { gsub(/"/, "", $2); print $2 }' \
-        .copier-answers.agentic.yml)"
+if [ -f scripts/ci/disambiguate-version ]; then
+    pin="$(tr -d '[:space:]' < scripts/ci/disambiguate-version)"
 elif [ -f copier.yml ]; then
     pin="$(awk '
         $1 == "agentic_disambiguate_version:" { in_q = 1; next }
@@ -44,7 +45,7 @@ elif [ -f copier.yml ]; then
     ' copier.yml)"
 fi
 if [ -z "$pin" ]; then
-    echo "prune_glossary: no agentic_disambiguate_version pin in .copier-answers.agentic.yml or copier.yml" >&2
+    echo "prune_glossary: no agentic_disambiguate_version pin in scripts/ci/disambiguate-version or copier.yml" >&2
     exit 1
 fi
 
