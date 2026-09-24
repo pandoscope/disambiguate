@@ -1,6 +1,6 @@
 ## Resolver
 
-The component that, given a set of requested term [slugs](slug.md), returns
+The component that, given a set of requested [term](term.md) [slugs](slug.md), returns
 the full [dependency](dependency.md) closure of those terms in
 [topological order](topological-order.md).
 

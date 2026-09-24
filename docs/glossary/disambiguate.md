@@ -1,6 +1,6 @@
 ## Disambiguate
 
-The CLI tool this glossary describes. Capitalized "Disambiguate" when
+The CLI tool this [glossary](glossary.md) describes. Capitalized "Disambiguate" when
 referring to the tool as a proper noun; lowercase only as the command-line
 invocation `uvx disambiguate`.
 
