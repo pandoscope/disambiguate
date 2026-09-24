@@ -109,13 +109,25 @@ def run_merge():
         # push's run keeps `merge approval` red for good; the approval's
         # own pull_request_review run holds the live verdict. Per
         # workflow, the newest run wins.
-        listed = paginate(
-            f"/repos/{repo}/actions/runs?head_sha={sha}", token, "workflow_runs"
-        )
-        runs = {}
-        for run in sorted(listed, key=lambda r: r["id"]):
-            runs[run["path"]] = run
-        pending, failures = aggregate_verdict(expected, runs, jobs_of)
+        try:
+            listed = paginate(
+                f"/repos/{repo}/actions/runs?head_sha={sha}", token, "workflow_runs"
+            )
+            runs = {}
+            for run in sorted(listed, key=lambda r: r["id"]):
+                runs[run["path"]] = run
+            pending, failures = aggregate_verdict(expected, runs, jobs_of)
+        except urllib.error.HTTPError as error:
+            # Reading runs and jobs needs actions: read on the app token.
+            # Without it GitHub answers 403; name the permission (#280).
+            if error.code != 403:
+                raise
+            print(
+                "::error::Listing the runs at this head was refused — a missing "
+                "permission: the release bot needs actions: read on this "
+                f"repository (HTTP {error.code})."
+            )
+            return 1
         if failures:
             for failure in failures:
                 print(f"Not merging: {failure}")
