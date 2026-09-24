@@ -585,3 +585,17 @@ def test_link_offsets_survive_code_before_the_link(tmp_path: Path) -> None:
         )
         == []
     )
+
+
+def test_mentions_inside_urls_and_html_tags_are_not_prose(tmp_path: Path) -> None:
+    # A term name inside a URL or a tag is not prose; under the position
+    # rule these would otherwise precede every link (#93).
+    assert (
+        _guide_findings(
+            tmp_path,
+            '<a href="https://example.com/widget/ci.yml">badge</a>\n'
+            "See <https://example.com/widget> and https://widget.example.org/x.\n"
+            "A [widget](glossary/widget.md) spins.\n",
+        )
+        == []
+    )
