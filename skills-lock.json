@@ -66,6 +66,12 @@
       "sourceType": "github",
       "skillPath": "original/writing-adrs/SKILL.md",
       "computedHash": "5a4fd656b3b7b0badcbb7d6ea8dfccfd1f5d510b123938e7ab8d19bbb682a3b4"
+    },
+    "writing-prose": {
+      "source": "pandoscope/skills",
+      "sourceType": "github",
+      "skillPath": "original/writing-prose/SKILL.md",
+      "computedHash": "2bc6746672d9afd849a5aa6dd4531209c3e3937a0c82b7fc61415386f43e2182"
     }
   }
 }
