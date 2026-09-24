@@ -2,11 +2,11 @@
 <!-- markdownlint-disable MD033 -->
 
 <p align="center">
-  <a href="https://github.com/frankify-app/disambiguate/actions/workflows/ci.yml?query=branch%3Amain">
-    <img src="https://img.shields.io/github/actions/workflow/status/frankify-app/disambiguate/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI Status" >
+  <a href="https://github.com/pandoscope/disambiguate/actions/workflows/ci.yml?query=branch%3Amain">
+    <img src="https://img.shields.io/github/actions/workflow/status/pandoscope/disambiguate/ci.yml?branch=main&label=CI&logo=github&style=flat-square" alt="CI Status" >
   </a>
-  <a href="https://codecov.io/gh/frankify-app/disambiguate">
-    <img src="https://img.shields.io/codecov/c/github/frankify-app/disambiguate.svg?logo=codecov&logoColor=fff&style=flat-square" alt="Test coverage percentage">
+  <a href="https://codecov.io/gh/pandoscope/disambiguate">
+    <img src="https://img.shields.io/codecov/c/github/pandoscope/disambiguate.svg?logo=codecov&logoColor=fff&style=flat-square" alt="Test coverage percentage">
   </a>
 </p>
 <p align="center">
@@ -30,7 +30,7 @@
 
 ---
 
-**Source Code**: <a href="https://github.com/frankify-app/disambiguate" target="_blank">https://github.com/frankify-app/disambiguate </a>
+**Source Code**: <a href="https://github.com/pandoscope/disambiguate" target="_blank">https://github.com/pandoscope/disambiguate </a>
 
 ---
 

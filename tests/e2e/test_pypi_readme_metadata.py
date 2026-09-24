@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-GITHUB_BLOB_PREFIX = "https://github.com/frankify-app/disambiguate/blob/main/"
+GITHUB_BLOB_PREFIX = "https://github.com/pandoscope/disambiguate/blob/main/"
 
 
 def _run(command: list[str], cwd: Path = ROOT) -> subprocess.CompletedProcess[str]:

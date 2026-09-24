@@ -251,7 +251,7 @@ def test_auto_prune_marker_does_not_disturb_lint_or_the_h2(tmp_path: Path) -> No
 
     The marker sits in an HTML comment so it stays invisible in rendered
     markdown, keeps the H2 first, and produces no finding of its own.
-    Acceptance criterion from frankify-app/disambiguate#52.
+    Acceptance criterion from pandoscope/disambiguate#52.
     """
     glossary_dir = _setup_glossary(tmp_path)
     _write(

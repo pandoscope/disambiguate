@@ -32,9 +32,9 @@ classifiers = [
 # absolute GitHub URLs in the built package metadata so they work on PyPI (#15).
 dynamic = [ "readme" ]
 dependencies = []
-urls."Bug Tracker" = "https://github.com/frankify-app/disambiguate/issues"
+urls."Bug Tracker" = "https://github.com/pandoscope/disambiguate/issues"
 urls.documentation = "https://disambiguate.readthedocs.io"
-urls.repository = "https://github.com/frankify-app/disambiguate"
+urls.repository = "https://github.com/pandoscope/disambiguate"
 scripts.disambiguate = "disambiguate.cli:main"
 
 [dependency-groups]
@@ -61,7 +61,7 @@ metadata.hooks.fancy-pypi-readme.fragments = [ { path = "README.md" } ]
 # already carry a URI scheme (https://, mailto:, ...) or are in-page anchors (#)
 # are left untouched.
 metadata.hooks.fancy-pypi-readme.substitutions = [
-  { pattern = "\\[([^\\]]+)\\]\\((?![a-zA-Z][a-zA-Z0-9+.-]*:|#)([^)]+)\\)", replacement = "[\\1](https://github.com/frankify-app/disambiguate/blob/main/\\2)" },
+  { pattern = "\\[([^\\]]+)\\]\\((?![a-zA-Z][a-zA-Z0-9+.-]*:|#)([^)]+)\\)", replacement = "[\\1](https://github.com/pandoscope/disambiguate/blob/main/\\2)" },
 ]
 
 [tool.ruff]
@@ -101,7 +101,7 @@ lint.per-file-ignores."tests/**/*" = [
 lint.per-file-ignores."tests/unit/test_dunder_main.py" = [ "S603" ]
 # Template-vendored (agentic-engineering-template) — managed duplication,
 # linted under the template's own config. Local strict-rule debt tracked in
-# frankify-app/agentic-engineering-template#55.
+# pandoscope/agentic-engineering-template#55.
 lint.per-file-ignores."tools/**/*" = [ "B904", "D", "S603", "S607" ]
 lint.isort.known-first-party = [ "tests" ]
 
