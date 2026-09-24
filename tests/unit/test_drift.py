@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from disambiguate.drift import run_drift_checks
+from disambiguate.drift import DriftFinding, run_drift_checks
 from disambiguate.glossary import load_glossary
 
 
@@ -533,3 +533,55 @@ def test_mention_inside_a_heading_is_not_drift(tmp_path: Path) -> None:
     glossary = load_glossary(glossary_dir)
     findings = run_drift_checks(glossary, roots=[root])
     assert [f for f in findings if f.rule_code == "unlinked-term"] == []
+
+
+def _guide_findings(tmp_path: Path, guide: str) -> list[DriftFinding]:
+    glossary_dir = _setup_glossary(tmp_path)
+    _write(glossary_dir, "widget", "## Widget\n\nA widget.\n")
+    root = _write(tmp_path, "README", "[w](glossary/widget.md) [g](guide.md)\n")
+    _write(tmp_path, "guide", guide)
+    findings = run_drift_checks(load_glossary(glossary_dir), roots=[root])
+    return [
+        f
+        for f in findings
+        if f.rule_code == "unlinked-term" and f.path.name == "guide.md"
+    ]
+
+
+def test_late_link_does_not_satisfy_the_first_mention(tmp_path: Path) -> None:
+    # The first mention of a term is its link (disambiguate#93); a link
+    # after plain mentions used to pass.
+    unlinked = _guide_findings(
+        tmp_path,
+        "The widget spins.\n\nLater a [widget](glossary/widget.md) stops.\n",
+    )
+    assert [(f.term, f.line) for f in unlinked] == [("widget", 1)]
+    assert "line 3" in unlinked[0].message
+
+
+def test_heading_link_before_every_mention_counts_as_first(tmp_path: Path) -> None:
+    assert (
+        _guide_findings(
+            tmp_path, "# About [widget](glossary/widget.md)\n\nThe widget spins.\n"
+        )
+        == []
+    )
+
+
+def test_heading_link_after_a_prose_mention_does_not_count(tmp_path: Path) -> None:
+    unlinked = _guide_findings(
+        tmp_path, "The widget spins.\n\n## See [widget](glossary/widget.md)\n"
+    )
+    assert [(f.term, f.line) for f in unlinked] == [("widget", 1)]
+
+
+def test_link_offsets_survive_code_before_the_link(tmp_path: Path) -> None:
+    # Code spans before the link must not shift its position.
+    assert (
+        _guide_findings(
+            tmp_path,
+            "Run `a very long command line here`. A [widget](glossary/widget.md) spins.\n"
+            "The widget stops.\n",
+        )
+        == []
+    )
