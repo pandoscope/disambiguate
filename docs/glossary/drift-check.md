@@ -7,12 +7,13 @@ run non-zero when any finding survives.
 
 Shipped drift-checks:
 
-- `unlinked-term`: a document mentions a [term](term.md) in plain prose but
-  never links it. Linking the term once anywhere in the document satisfies
-  the rule for every mention in that document — first-occurrence linking is
-  the convention, later plain mentions are fine. A term used with a
-  non-glossary (colloquial) meaning is intentionally the same finding: an
-  unlinked mention either should be linked or should be reworded.
+- `unlinked-term`: the first prose mention of a [term](term.md) in a document is not its link.
+  The finding points at that first plain mention.
+  Later plain mentions after the link are fine.
+  A link after a plain mention does not count,
+  and a link in a heading counts only when the heading comes before every prose mention.
+  A **term** that carries a non-glossary (colloquial) meaning is intentionally the same finding:
+  an unlinked mention either should be linked or should be reworded.
 - `wrong-alias`: prose uses an [avoided-term](avoided-term.md) — a
   forbidden synonym — where the canonical term is meant. The finding names
   the canonical term to use instead.

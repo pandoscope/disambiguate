@@ -16,7 +16,7 @@ from pathlib import Path
 from .glossary import Glossary, Term
 from .lint import walk_reachable
 from .mentions import find_mentions
-from .parser import extract_all_link_slugs, extract_avoided_terms
+from .parser import extract_avoided_terms, first_link_offsets
 from .suppressions import (
     DriftConfig,
     FileHint,
@@ -59,11 +59,13 @@ def _check_unlinked_terms(
     glossary: Glossary, corpus: dict[Path, str]
 ) -> list[DriftFinding]:
     """
-    Report each (document, term) pair mentioned in prose but never linked.
+    Report each (document, term) pair whose first prose mention is not a link.
 
-    A single link to the term anywhere in the document satisfies the rule
-    for every mention in that document. A term is never checked against its
-    own defining file — a definition necessarily names itself.
+    A link to the term satisfies the rule for every later mention in the
+    document. A link after a plain mention does not (#93), and a link in a
+    heading counts only when the heading comes before every prose mention.
+    A term is never checked against its own defining file — a definition
+    necessarily names itself.
 
     DECISION:SCOPE — self-file exemption is not in the ticket; without it
     every term file flags itself for naming its own term.
@@ -71,17 +73,23 @@ def _check_unlinked_terms(
     findings: list[DriftFinding] = []
     for path in sorted(corpus):
         text = corpus[path]
-        linked_slugs = set(extract_all_link_slugs(text))
+        link_offsets = first_link_offsets(text)
         for slug in sorted(glossary.terms):
             term = glossary.terms[slug]
             if path == term.path.resolve():
-                continue
-            if slug in linked_slugs:
                 continue
             mentions = find_mentions(text, _term_variants(term))
             if not mentions:
                 continue
             first = mentions[0]
+            link_at = link_offsets.get(slug)
+            if link_at is not None and link_at < first.offset:
+                continue
+            if link_at is None:
+                problem = "is mentioned but never linked in this document"
+            else:
+                link_line = text.count("\n", 0, link_at) + 1
+                problem = f"is mentioned before its first link on line {link_line}"
             findings.append(
                 DriftFinding(
                     rule_code="unlinked-term",
@@ -89,9 +97,8 @@ def _check_unlinked_terms(
                     line=first.line,
                     term=slug,
                     message=(
-                        f"{first.matched!r} is mentioned but never linked in "
-                        f"this document; link the term once, e.g. "
-                        f"[{first.matched}]({slug}.md), or suppress with "
+                        f"{first.matched!r} {problem}; link the first mention, "
+                        f"e.g. [{first.matched}]({slug}.md), or suppress with "
                         f"<!-- d10e: ignore[unlinked-term] {slug} -->"
                     ),
                 )

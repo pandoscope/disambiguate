@@ -197,6 +197,40 @@ def extract_all_link_refs(text: str) -> list[tuple[str, str | None]]:
     return [(slug, path) for _, slug, path in matches]
 
 
+def _blank_code(text: str) -> str:
+    """
+    Replace code blocks and inline code spans with spaces, keeping newlines.
+
+    Unlike `_strip_code`, every offset in the result is the same offset in
+    `text`, so a link found here can be compared with a mention's position.
+    """
+
+    def blank(match: re.Match[str]) -> str:
+        return re.sub(r"[^\n]", " ", match.group(0))
+
+    without_fenced = _FENCED_CODE_RE.sub(blank, text)
+    return _INLINE_CODE_RE.sub(blank, without_fenced)
+
+
+def first_link_offsets(text: str) -> dict[str, int]:
+    """
+    Return each linked slug's first link offset in `text`.
+
+    Same extraction as `extract_all_link_refs`; the offsets index `text`
+    itself, code included.
+    """
+    blanked = _blank_code(text)
+    offsets: dict[str, int] = {}
+    for match in _MD_LINK_RE.finditer(blanked):
+        if not _is_url(match.group(1)):
+            slug = _path_basename_slug(match.group(1))
+            offsets[slug] = min(offsets.get(slug, match.start()), match.start())
+    for match in _WIKILINK_RE.finditer(blanked):
+        slug = match.group(1)
+        offsets[slug] = min(offsets.get(slug, match.start()), match.start())
+    return offsets
+
+
 def extract_all_link_slugs(text: str) -> list[str]:
     """
     Return the slugs of every cross-reference in document order.
