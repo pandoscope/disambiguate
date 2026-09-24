@@ -29,6 +29,11 @@ _WIKILINK_SPAN_RE = re.compile(r"!?\[\[[^\]]*\]\]")
 # silence) and are invisible in rendered markdown — never a term-mention.
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
+# URLs and HTML tags: a term name inside an address or an attribute is not
+# prose (#93). Autolinks (`<https://...>`) are tags to this pattern.
+_HTML_TAG_RE = re.compile(r"</?[A-Za-z][^<>\n]*>|<[a-z]+://[^<>\s]+>")
+_BARE_URL_RE = re.compile(r"\b[a-z]+://[^\s<>()]+")
+
 # ATX heading lines. A heading names its subject rather than discussing
 # it: requiring it to carry the document's one link, or to lower-case a
 # term mid-title, is not a rule anyone would write. Only the findings are
@@ -78,7 +83,7 @@ def masked_spans(text: str) -> list[tuple[int, int]]:
 
     Excluded regions: fenced code blocks, inline code spans, whole links
     of either syntax (markdown and wiki-style) including their display
-    text, HTML comments, and ATX heading lines. Spans are in document
+    text, HTML comments, HTML tags, URLs, and ATX heading lines. Spans are in document
     order and may touch but not nest.
     """
     spans: list[tuple[int, int]] = []
@@ -88,6 +93,8 @@ def masked_spans(text: str) -> list[tuple[int, int]]:
         _MD_LINK_SPAN_RE,
         _WIKILINK_SPAN_RE,
         _HTML_COMMENT_RE,
+        _HTML_TAG_RE,
+        _BARE_URL_RE,
         _ATX_HEADING_RE,
     ):
         for match in pattern.finditer(text):
