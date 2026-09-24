@@ -114,4 +114,4 @@ pytest tests
 
 A release is a version bump merged to `main`. Bump `project.version` in `pyproject.toml` and `__version__` in `src/disambiguate/__init__.py` in one PR. Run `uv lock`. Merge. The Release workflow publishes to PyPI, creates the tag and creates the GitHub release with generated notes. See [docs/releasing.md](docs/releasing.md).
 
-[gh-issues]: https://github.com/frankify-app/disambiguate/issues
+[gh-issues]: https://github.com/pandoscope/disambiguate/issues
