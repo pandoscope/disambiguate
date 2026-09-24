@@ -14,7 +14,7 @@ The domain model lives in two places:
 - **Glossary** — `docs/glossary/`, one markdown file per term, in the format `uvx disambiguate` expects (see below). Never a root `CONTEXT.md`.
 - **Decisions** — ADRs in `docs/adr/`, per the `writing-adrs` skill.
 
-Glossary entries, ADRs, docs: as short as possible, caveman mode preferred (`caveman` skill) — precision and understandability must not suffer.
+Glossary entries, ADRs, docs: written and checked with the `writing-prose` skill if available, surface `markdown` — precision and understandability must not suffer.
 
 Create files lazily — only when you have something to write. If `docs/glossary/` doesn't exist, create it when the first term is resolved.
 

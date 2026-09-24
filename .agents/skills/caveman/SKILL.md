@@ -1,14 +1,16 @@
 ---
 name: caveman
 description: >
-  Terse communication that stays easy to parse. Drops filler,
-  pleasantries and hedging while keeping full technical accuracy. Chat
-  keeps natural language, because humans read it; files, docs,
-  comments and commit messages save tokens through cut fluff and flat
-  sentence structure, never through nested clauses. Use when user says
+  Terse chat that stays easy to parse. Drops filler, pleasantries and
+  hedging while keeping full technical accuracy. Use when user says
   "caveman mode", "talk like caveman", "use caveman", "less tokens",
   "be brief", or invokes /caveman.
 metadata.derived-from: https://github.com/mattpocock/skills/blob/62f43a18177be6ec82da242e59ffbc490a4c22ea/skills/productivity/caveman/SKILL.md
+metadata.derivation-note: >
+  This skill covers the chat register. Prose in files, comments, commit
+  messages and tracker text follows the writing-prose skill. The shared
+  rules stay as upstream wrote them; where both skills state a rule,
+  writing-prose is the authority.
 ---
 
 # Caveman
@@ -31,13 +33,12 @@ never by packing several facts into one nested sentence.
 Dropped articles cost nothing when sentences still read naturally.
 A subject held unnamed until sentence end costs a lot.
 
-## Modes
+## Scope
 
-Chat: human always reads it.
-Natural language, terse.
-Files, docs, comments, commit messages: mostly models read it, human sometimes.
-Save tokens, keep structure flat.
-Same substance policy on both: fluff dies.
+A human reads chat, so write it in natural language, tersely.
+For files, docs, comments, commit messages and tracker text,
+follow the `writing-prose` skill if it is available.
+Without it, apply the Shared Rules below in flat sentences.
 
 ## Shared Rules
 
@@ -69,44 +70,6 @@ Yes: "Bug in auth middleware: expiry check uses `<` instead of `<=`. Fix:"
 Example, "Why does the React component re-render?":
 
 > Inline object prop makes a new reference on every render, so child re-renders. Wrap it in `useMemo`.
-
-## Docs Rules
-
-- Plain declarative prose.
-  Omit articles where sentences still read naturally;
-  never drop words still needed to resolve a referent.
-- One fact per clause.
-  More sentences fine, denser sentences not.
-- Subject is the actor (hook, script, command).
-  Config, fields and files are objects, never subjects.
-- Verb comes within four words of subject.
-  No clause between verb and complement.
-- Relative clause takes "that" or "which", or becomes its own sentence.
-- Every "the X" and "its" refers to something named in current or previous sentence.
-- Known before new: sentence opens with the thing the previous sentence named,
-  then adds the news.
-- Event is a verb, never a noun.
-  A noun for an event drags its participants in as prepositional phrases
-  and pushes the verb late.
-- Prefer shorter phrasing when it reads equally well.
-- Target: a skimming reader can stop after any sentence and have understood it.
-
-Not: "The hook, between ensure-repos and the composer,
-switches each clone the order's `checkouts:` block names to its ref,
-leaves a clone with local changes alone,
-and never touches the waybill clone itself."
-Yes: "Hook runs between ensure-repos and composer.
-It reads the `checkouts:` block of the order.
-For each repository named there, it switches that clone to the listed ref.
-It skips a clone with local changes and says so.
-It never touches the waybill clone."
-
-Not: "The waybill order is the only receiver.
-A fire of the waybill repository from an order branch carries it."
-Yes: "The waybill order is the only receiver.
-It arrives when the Routine fires from an order branch of the waybill repository."
-The first version turns the firing into a noun, hangs two prepositional phrases on it,
-and leaves the known thing as "it" at the end.
 
 ## Auto-Clarity Exception
 

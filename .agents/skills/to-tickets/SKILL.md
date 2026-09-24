@@ -124,7 +124,7 @@ Every outcome-shaping decision, stated or referenced (ADR/glossary). Bugfix: spe
 - Reference per blocking ticket, or "None — can start immediately".
 ```
 
-Ticket prose: as short as possible, caveman mode preferred (`caveman` skill) — precision and understandability must not suffer.
+Ticket prose: written and checked with the `writing-prose` skill if available, surface `ticket` — precision and understandability must not suffer.
 
 No file paths/code snippets — stale fast. Exception: prototype snippet encoding a decision more precisely than prose (state machine, reducer, schema, type shape) → inline, note prototype origin, trim to decision-rich parts.
 

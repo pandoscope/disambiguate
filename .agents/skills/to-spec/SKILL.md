@@ -28,7 +28,7 @@ Spec is load-bearing. No grilling session (`docs/glossary/grilling-session.md`) 
 
    Check seams with user.
 
-3. Write spec per template — as short as possible, caveman mode preferred (`caveman` skill), precision and understandability must not suffer. Apply litmus test to every section, publish per consumer repo's tracker conventions (AGENTS.md). Apply `ready-for-agent` label — no further triage.
+3. Write spec per template — written and checked with the `writing-prose` skill if available, surface `ticket`; precision and understandability must not suffer. Apply litmus test to every section, publish per consumer repo's tracker conventions (AGENTS.md). Apply `ready-for-agent` label — no further triage.
 
 Spec template:
 

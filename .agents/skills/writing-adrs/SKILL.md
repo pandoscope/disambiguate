@@ -24,7 +24,7 @@ Create the `docs/adr/` directory lazily — only when the first ADR is needed.
 
 That's it. An ADR can be a single paragraph. The value is in recording *that* a decision was made and *why* — not in filling out sections.
 
-As short as possible — caveman mode preferred (`caveman` skill). Hard limit: precision and understandability must not suffer.
+Written and checked with the `writing-prose` skill if available, surface `markdown`. Hard limit: precision and understandability must not suffer.
 
 ## Optional sections
 
