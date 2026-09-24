@@ -2,19 +2,19 @@
   "version": 1,
   "skills": {
     "caveman": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/caveman/SKILL.md",
       "computedHash": "2928bc99f67a040115f7fa0f0b31ff8d19df4f55ef1e0e5e99e2dbaa72f87346"
     },
     "documenting-decisions": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "original/documenting-decisions/SKILL.md",
       "computedHash": "b71f6fc8250903091477b16e0ca976b20d4d65fd7d12acd7d5025b9d4bddfe08"
     },
     "domain-modeling": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/domain-modeling/SKILL.md",
       "computedHash": "839ba2d025f594dc698730aee74066eb640ac02013b4029749d61b4262793cc7"
@@ -32,7 +32,7 @@
       "computedHash": "35e62aa423aaeab6a414bcac273f56dfb17802ef2334b41b6a3b00f28196c8cf"
     },
     "grilling": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/grilling/SKILL.md",
       "computedHash": "dbdff4d28e18c27f2d09ae28acb8199f5bc5a144ced96008fe343a3e1338c4fb"
@@ -44,25 +44,25 @@
       "computedHash": "2abaeac1de432c76abda0ca7ba618901d2e94f8817b3650f9c523acea2d224f5"
     },
     "tdd": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/tdd/SKILL.md",
       "computedHash": "d77f0ecda1ec673c16f342a2e16b6ac3388d1004908e4352b4f57cffe701aa97"
     },
     "to-spec": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/to-spec/SKILL.md",
       "computedHash": "11bace9728fd91873b01ea743694226544907a8983a90b6e327324a41e062b0f"
     },
     "to-tickets": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/to-tickets/SKILL.md",
       "computedHash": "b78fce1077543bb693bc711e6b4fe5ce270702eea12e30fca584d2cb5f73da4e"
     },
     "writing-adrs": {
-      "source": "frankify-app/skills",
+      "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "original/writing-adrs/SKILL.md",
       "computedHash": "5a4fd656b3b7b0badcbb7d6ea8dfccfd1f5d510b123938e7ab8d19bbb682a3b4"
