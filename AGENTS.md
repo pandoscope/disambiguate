@@ -105,7 +105,7 @@ Each table is sorted alphabetically by skill — keep it sorted when adding entr
 
 | Skill                    | Trigger                                                                                            |
 | ------------------------ | -------------------------------------------------------------------------------------------------- |
-| `caveman`                | Compact wording when writing prose (issues description, PR description, comments on repo or code)  |
+| `caveman`                | Terse, easy-to-parse chat with the user                                                            |
 | `documenting-decisions`  | Any implementation task — place `DECISION:` markers                                                |
 | `domain-modeling`        | Pinning down domain terminology (glossary in `docs/glossary/`) or recording decisions in design    |
 | `grill-me`               | User asks to be grilled/interviewed about a plan or design before implementation                   |
@@ -113,6 +113,7 @@ Each table is sorted alphabetically by skill — keep it sorted when adding entr
 | `grilling`               | Core interview loop used by `grill-me`/`grill-with-docs`; also on any 'grill' trigger phrase       |
 | `to-spec`                | Turning the current conversation into a spec/PRD and publishing it to the tracker                  |
 | `writing-adrs`           | Recording an architectural decision as an ADR in `docs/adr/`, or when another skill flags one      |
+| `writing-prose`          | Writing, rewriting or reviewing prose in files, comments, commits, tickets or PR bodies            |
 
 Code-specific skills:
 
