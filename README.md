@@ -34,14 +34,14 @@
 
 ---
 
-Disambiguate resolves markdown glossary terms and their transitive
-dependencies in topological order. Point it at a directory of `*.md` term
+[Disambiguate](docs/glossary/disambiguate.md) resolves markdown glossary terms and their transitive
+dependencies in [topological order](docs/glossary/topological-order.md). Point it at a directory of `*.md` [term](docs/glossary/term.md)
 files in either [GitHub format](docs/glossary/github-format.md) or
 [Obsidian format](docs/glossary/obsidian-format.md), ask for a slug or two,
 and get back a self-contained markdown document where every term is
 defined before it is referenced.
 
-The vendored skills use one org term: [grilling](docs/glossary/grilling.md).
+The vendored skills use one [org](docs/glossary/org.md) term: [grilling](docs/glossary/grilling.md).
 
 ## Quickstart
 
@@ -99,7 +99,7 @@ A release is a version bump merged to `main` ([docs/releasing.md](docs/releasing
 
 ## Org glossary
 
-Org-genome terms stamped in by the
+[Org-genome](docs/glossary/org-genome.md) terms stamped in by the
 [template](https://github.com/pandoscope/agentic-engineering-template)
 (rooted here so `disambiguate --lint` can reach them):
 [org](docs/glossary/org.md),

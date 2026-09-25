@@ -3,7 +3,7 @@
 A link from one [term](term.md) to another. Cross-references come in two
 syntactic forms, both supported:
 
-- Standard markdown: `[Alias](foo.md)` — resolves to the term whose slug
+- Standard markdown: `[Alias](foo.md)` — resolves to the term whose [slug](slug.md)
   matches the link's basename, regardless of path, so
   `[Alias](path/to/foo.md)` also resolves to `foo`. A `#fragment` after
   the path is ignored: `[Alias](foo.md#heading)` resolves to `foo`.
