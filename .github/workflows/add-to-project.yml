@@ -3,10 +3,10 @@ name: Add to project board
 on:
   issues:
     types: [opened, reopened]
-  # `pull_request` from a fork carries no secrets, so the token would be
-  # empty exactly when a contributor opens a PR. The base-context event
-  # has it. Safe here only because this workflow never checks out — let
-  # alone runs — the PR's code.
+  # `pull_request` from a fork carries no secrets,
+  # so the release bot's key would be missing exactly when a contributor opens a PR;
+  # the base-context event carries it.
+  # That is safe only because this workflow never checks out the PR's code, let alone runs it.
   pull_request_target:
     types: [opened, reopened]
 
@@ -19,17 +19,24 @@ jobs:
   add:
     name: "add to board"
     runs-on: ubuntu-latest
-    # GitHub's built-in auto-add workflow is plan-limited to a single
-    # repository, so the board is populated from here instead. Repos that
-    # set no board URL show this job as SKIPPED rather than green.
-    if: ${{ vars.PROJECT_BOARD_URL != '' }}
+    # GitHub's built-in auto-add workflow is plan-limited to a single repository,
+    # so the board is populated from here instead.
+    # Without a board URL or a release bot the job shows SKIPPED, never green or red (#301).
+    if: ${{ vars.PROJECT_BOARD_URL != '' && vars.RELEASE_BOT_CLIENT_ID != '' }}
     steps:
+      # An org-level project is beyond the repo-scoped GITHUB_TOKEN's reach, so the release bot's token adds the item.
+      # A red step here means the release bot lacks organization Projects: write; do not soften that into a warning.
+      - name: Mint release-bot installation token
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+        with:
+          app-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-organization-projects: write
+          permission-issues: read
+          permission-pull-requests: read
+
       - uses: actions/add-to-project@244f685bbc3b7adfa8466e08b698b5577571133e # v1.0.2
         with:
           project-url: ${{ vars.PROJECT_BOARD_URL }}
-          # An ORG-level project is outside the repo-scoped GITHUB_TOKEN's
-          # reach, so this needs a PAT with organization Projects: write.
-          # It expires; when it does, items stop reaching the board and the
-          # only visible signal is this job going red. Do not soften that
-          # into a warning.
-          github-token: ${{ secrets.PROJECT_BOARD_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
