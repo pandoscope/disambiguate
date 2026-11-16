@@ -35,13 +35,21 @@
       "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "derived/grilling/SKILL.md",
+<<<<<<< before updating
       "computedHash": "dbdff4d28e18c27f2d09ae28acb8199f5bc5a144ced96008fe343a3e1338c4fb"
+=======
+      "computedHash": "d2859bf88c058495f13ccb4e3a41abc6211e3466b31d21cb0d7a2eaa10a922fb"
+>>>>>>> after updating
     },
     "requesting-code-review": {
       "source": "obra/superpowers",
       "sourceType": "github",
       "skillPath": "skills/requesting-code-review/SKILL.md",
+<<<<<<< before updating
       "computedHash": "2abaeac1de432c76abda0ca7ba618901d2e94f8817b3650f9c523acea2d224f5"
+=======
+      "computedHash": "b095ac8c980339436b41de9989328f3f288f2e2a70452df28452bbeb6531d604"
+>>>>>>> after updating
     },
     "tdd": {
       "source": "pandoscope/skills",
@@ -71,7 +79,7 @@
       "source": "pandoscope/skills",
       "sourceType": "github",
       "skillPath": "original/writing-prose/SKILL.md",
-      "computedHash": "2bc6746672d9afd849a5aa6dd4531209c3e3937a0c82b7fc61415386f43e2182"
+      "computedHash": "f106b35d2d3a4d64151bbb36abac9f7d623df867e80e65e174035512a2cf3433"
     }
   }
 }
