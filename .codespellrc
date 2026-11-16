@@ -1,2 +1,10 @@
 [codespell]
-ignore-words-list = socio-economic
+# One key per list, each on one line: codespell rejects a repeated key,
+# and an entry on a continuation line without a separating comma is
+# silently not applied.
+#
+# fount: a real word that codespell reads as a typo of "found". Ignored
+# in every stamped repo, so a real typo of that spelling passes too.
+ignore-words-list = fount
+# Generated word lists that an English dictionary cannot judge.
+skip = artifacts/naming/*

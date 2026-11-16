@@ -56,6 +56,10 @@ this file, tersely.
   run `prek run --all-files`, commit with `--no-verify`, and fold before pushing.
 - Aim a `fixup!` at the last commit that touched its lines;
   an older target conflicts on folding when later commits changed the same lines.
+- Cloud sessions: of two attached repositories with one name, the harness clones only one;
+  check `git remote get-url origin` before trusting such a checkout.
+- Cloud sessions: a repository in the session's scope that is missing on disk
+  can be cloned by hand into another directory.
 
 ## Pull Requests
 
